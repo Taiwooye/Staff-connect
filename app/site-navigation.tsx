@@ -8,6 +8,8 @@ const navigationLinks = [
   { href: "/maids", label: "Find household help", detail: "Browse local profiles" },
   { href: "/#categories", label: "Services", detail: "Explore types of support" },
   { href: "/#how-it-works", label: "How it works", detail: "See how StaffConnect works" },
+  { href: "/about", label: "About us", detail: "Learn what StaffConnect is building" },
+  { href: "/contact", label: "Contact us", detail: "Find the right way to get started" },
   { href: "/onboarding/provider", label: "For professionals", detail: "Create a staff profile" },
   { href: "/onboarding", label: "Sign up", detail: "Choose a Client or Provider account" },
 ];

@@ -230,6 +230,8 @@ export default function HomePage() {
             <Link href="/maids" className="transition hover:text-white">Find household help</Link>
             <Link href="/onboarding/client" className="transition hover:text-white">Find help for your home</Link>
             <Link href="/onboarding/provider" className="transition hover:text-white">Create a staff profile</Link>
+            <Link href="/about" className="transition hover:text-white">About us</Link>
+            <Link href="/contact" className="transition hover:text-white">Contact us</Link>
             <Link href="#how-it-works" className="transition hover:text-white">How it works</Link>
           </nav>
         </div>

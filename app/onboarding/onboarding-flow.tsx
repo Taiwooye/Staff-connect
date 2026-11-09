@@ -320,7 +320,9 @@ export default function OnboardingFlow({ role }: { role: Role }) {
               href={isClient ? "/onboarding/provider" : "/onboarding/client"}
               className="font-semibold text-amber-800 underline underline-offset-2"
             >
-              Switch to {isClient ? "Provider" : "Client"}
+              {isClient
+                ? "I’m looking for work — switch to Provider"
+                : "I’m hiring household help — switch to Client"}
             </Link>
             .
           </p>

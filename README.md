@@ -14,6 +14,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Prototype features
 
 - Browse and filter sample professional profiles by service type, state, area, skills, and work arrangement at `/maids`. Category links use service-specific skills; pet care, gardening, elderly care, driving, and maintenance show no sample matches until profiles for those services are added.
+- Learn about the prototype at `/about` and find next steps for households and professionals at `/contact`. Contact options are not connected to a live support inbox yet.
 - Sort directory results by location, experience, gender, availability, work arrangement, or salary, and review the active filters beside the result count.
 - Open a profile at `/maids/[id]` to review experience, qualifications, languages, interests, and work preferences.
 - Save profiles during the current browser session and filter the directory to saved profiles.
