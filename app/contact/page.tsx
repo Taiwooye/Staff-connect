@@ -22,9 +22,9 @@ const contactPaths = [
     eyebrow: "For professionals",
     title: "Looking for household work?",
     description:
-      "Create a temporary provider profile preview with your skills and availability.",
-    action: "Create a provider profile",
-    href: "/onboarding/provider",
+      "Create a Provider account first, then explore the temporary work-profile preview.",
+    action: "Create a Provider account",
+    href: "/auth?mode=signup&role=provider&next=%2Faccount",
     icon: "✳",
     style: "bg-emerald-50 text-emerald-900",
   },

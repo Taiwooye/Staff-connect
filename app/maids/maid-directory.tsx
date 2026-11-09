@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getAreasForState, launchStates } from "../locations";
 import { useProfileDraft } from "../onboarding/profile-draft-context";
+import { useAuth } from "../auth/auth-context";
 import { maidProfiles } from "./maid-profiles";
 import {
   allHouseholdSkills,
@@ -45,11 +46,13 @@ export default function MaidDirectory({
   initialService: ServiceCategoryId;
 }) {
   const router = useRouter();
+  const { providerProfileSaved } = useProfileDraft();
   const {
-    savedProfileIds,
-    toggleSavedProfile,
-    providerProfileSaved,
-  } = useProfileDraft();
+    status: authStatus,
+    accountType,
+    savedProfessionalIds,
+    toggleSavedProfessional,
+  } = useAuth();
   const [query, setQuery] = useState("");
   const [state, setState] = useState("");
   const [area, setArea] = useState("");
@@ -59,6 +62,7 @@ export default function MaidDirectory({
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>("recommended");
+  const [saveError, setSaveError] = useState("");
   const [showFilters, setShowFilters] = useState(initialService !== "all");
   const service =
     serviceFilters.find((option) => option.id === serviceId) ?? serviceFilters[0];
@@ -104,7 +108,8 @@ export default function MaidDirectory({
       const matchesService =
         serviceId === "all" || service.skills.some((skill) => profile.skills.includes(skill));
       const matchesSkills = selectedSkills.every((skill) => profile.skills.includes(skill));
-      const matchesSaved = !showSavedOnly || savedProfileIds.includes(profile.id);
+      const matchesSaved =
+        !showSavedOnly || savedProfessionalIds.includes(profile.id);
 
       return (
         matchesSearch &&
@@ -145,6 +150,59 @@ export default function MaidDirectory({
         ? current.filter((selected) => selected !== skill)
         : [...current, skill],
     );
+  }
+
+  function showSavedProfiles() {
+    setSaveError("");
+    if (authStatus === "signed-in" && accountType === "client") {
+      setShowSavedOnly((current) => !current);
+      return;
+    }
+
+    if (authStatus === "signed-in" && accountType === "provider") {
+      setSaveError(
+        "Saved profiles are for Client accounts. Sign out and choose a Client account to save household professionals.",
+      );
+      return;
+    }
+
+    if (authStatus === "signed-in") {
+      setSaveError("Your account type could not be loaded. Open your account for details.");
+      return;
+    }
+
+    router.push("/auth?mode=signup&role=client&next=%2Fmaids");
+  }
+
+  async function saveProfile(profileId: string) {
+    setSaveError("");
+
+    if (authStatus !== "signed-in" || accountType !== "client") {
+      if (authStatus === "signed-in" && accountType === "provider") {
+        setSaveError(
+          "Only Client accounts can save household professionals. Sign out and choose a Client account to continue.",
+        );
+        return;
+      }
+
+      if (authStatus === "signed-in") {
+        setSaveError("Your account type could not be loaded. Open your account for details.");
+        return;
+      }
+
+      router.push(
+        `/auth?mode=signup&role=client&next=${encodeURIComponent(`/maids/${profileId}`)}`,
+      );
+      return;
+    }
+
+    try {
+      await toggleSavedProfessional(profileId);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Could not update this saved profile.",
+      );
+    }
   }
 
   function clearFilters() {
@@ -341,18 +399,26 @@ export default function MaidDirectory({
               <button
                 type="button"
                 aria-pressed={showSavedOnly}
-                onClick={() => setShowSavedOnly((current) => !current)}
+                disabled={authStatus === "loading"}
+                onClick={showSavedProfiles}
                 className={`mt-5 inline-flex min-h-10 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                   showSavedOnly
                     ? "border-rose-300 bg-rose-50 text-rose-800"
                     : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:text-rose-700"
-                }`}
+                } disabled:cursor-wait disabled:opacity-60`}
               >
                 <span aria-hidden="true">♡</span>
-                Saved profiles <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs">{savedProfileIds.length}</span>
+                {authStatus === "signed-in" && accountType === "client"
+                  ? "Saved profiles"
+                  : "Sign in to save"}
+                {authStatus === "signed-in" && accountType === "client" && (
+                  <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs">
+                    {savedProfessionalIds.length}
+                  </span>
+                )}
               </button>
               <p className="mt-2 text-xs text-slate-500">
-                Saved profiles are kept for this browser session only.
+                Save profiles to your Client account and find them again later.
               </p>
             </div>
           )}
@@ -373,6 +439,11 @@ export default function MaidDirectory({
                 <p className="mt-2 text-sm text-amber-900">
                   <span className="font-semibold">Filters applied:</span>{" "}
                   {activeFilters.join(" · ")}
+                </p>
+              )}
+              {saveError && (
+                <p role="alert" className="mt-2 max-w-2xl text-sm text-rose-700">
+                  {saveError}
                 </p>
               )}
             </div>
@@ -486,21 +557,22 @@ export default function MaidDirectory({
                       </Link>
                       <button
                         type="button"
-                        aria-pressed={savedProfileIds.includes(profile.id)}
+                        aria-pressed={savedProfessionalIds.includes(profile.id)}
                         aria-label={
-                          savedProfileIds.includes(profile.id)
+                          savedProfessionalIds.includes(profile.id)
                             ? `Remove ${profile.name} from saved profiles`
                             : `Save ${profile.name} profile`
                         }
-                        onClick={() => toggleSavedProfile(profile.id)}
+                        disabled={authStatus === "loading"}
+                        onClick={() => void saveProfile(profile.id)}
                         className={`flex min-h-10 items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition ${
-                          savedProfileIds.includes(profile.id)
+                          savedProfessionalIds.includes(profile.id)
                             ? "border-rose-200 bg-rose-50 text-rose-700"
                             : "border-slate-200 text-slate-600 hover:border-rose-200 hover:text-rose-700"
-                        }`}
+                        } disabled:cursor-wait disabled:opacity-60`}
                       >
-                        <span aria-hidden="true">{savedProfileIds.includes(profile.id) ? "♥" : "♡"}</span>
-                        {savedProfileIds.includes(profile.id) ? "Saved" : "Save"}
+                        <span aria-hidden="true">{savedProfessionalIds.includes(profile.id) ? "♥" : "♡"}</span>
+                        {savedProfessionalIds.includes(profile.id) ? "Saved" : "Save"}
                       </button>
                     </div>
                   </article>
@@ -510,15 +582,15 @@ export default function MaidDirectory({
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
               <p className="text-lg font-semibold text-slate-800">
-                {showSavedOnly && savedProfileIds.length === 0
-                  ? "You haven’t saved any profiles yet"
+                {showSavedOnly
+                  ? "No saved profiles match these filters"
                   : serviceId !== "all"
                     ? `No sample profiles for ${service.label.toLowerCase()} yet`
                     : "No profiles match those filters"}
               </p>
               <p className="mt-2 text-sm text-slate-500">
-                {showSavedOnly && savedProfileIds.length === 0
-                  ? "Save a professional’s profile to find it here during this session."
+                {showSavedOnly
+                  ? "Clear filters or browse the directory and save a profile to your Client account."
                   : serviceId !== "all"
                     ? "This category is ready for matching listings when the endpoint is connected. We’ll only show profiles with skills for this kind of work."
                     : "Try another location or remove a skill to see more sample profiles."}

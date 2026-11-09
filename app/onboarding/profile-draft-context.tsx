@@ -38,11 +38,9 @@ type ProfileDraftContextValue = {
   householdProfile: HouseholdProfileDraft | null;
   providerProfile: ProviderProfileDraft | null;
   providerProfileSaved: boolean;
-  savedProfileIds: string[];
   saveHouseholdProfile: (profile: HouseholdProfileDraft) => void;
   saveProviderProfile: (profile: ProviderProfileDraft) => void;
   markProviderProfileSaved: () => void;
-  toggleSavedProfile: (profileId: string) => void;
 };
 
 const ProfileDraftContext = createContext<ProfileDraftContextValue | null>(null);
@@ -55,8 +53,6 @@ export function ProfileDraftProvider({ children }: { children: React.ReactNode }
     null,
   );
   const [providerProfileSaved, setProviderProfileSaved] = useState(false);
-  const [savedProfileIds, setSavedProfileIds] = useState<string[]>([]);
-
   const saveProviderProfile = useCallback((profile: ProviderProfileDraft) => {
     setProviderProfile(profile);
     setProviderProfileSaved(false);
@@ -66,33 +62,21 @@ export function ProfileDraftProvider({ children }: { children: React.ReactNode }
     setProviderProfileSaved(true);
   }, []);
 
-  const toggleSavedProfile = useCallback((profileId: string) => {
-    setSavedProfileIds((current) =>
-      current.includes(profileId)
-        ? current.filter((savedId) => savedId !== profileId)
-        : [...current, profileId],
-    );
-  }, []);
-
   const value = useMemo(
     () => ({
       householdProfile,
       providerProfile,
       providerProfileSaved,
-      savedProfileIds,
       saveHouseholdProfile: setHouseholdProfile,
       saveProviderProfile,
       markProviderProfileSaved,
-      toggleSavedProfile,
     }),
     [
       householdProfile,
       providerProfile,
       providerProfileSaved,
-      savedProfileIds,
       saveProviderProfile,
       markProviderProfileSaved,
-      toggleSavedProfile,
     ],
   );
 

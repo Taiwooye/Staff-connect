@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAuth } from "./auth/auth-context";
 
 const navigationLinks = [
   { href: "/", label: "Home", detail: "Back to the welcome page" },
@@ -10,12 +11,45 @@ const navigationLinks = [
   { href: "/#how-it-works", label: "How it works", detail: "See how StaffConnect works" },
   { href: "/about", label: "About us", detail: "Learn what StaffConnect is building" },
   { href: "/contact", label: "Contact us", detail: "Find the right way to get started" },
-  { href: "/onboarding/provider", label: "For professionals", detail: "Create a staff profile" },
-  { href: "/onboarding", label: "Sign up", detail: "Choose a Client or Provider account" },
+  {
+    href: "/auth?mode=signup&role=provider&next=%2Faccount",
+    label: "For professionals",
+    detail: "Create a Provider account",
+  },
 ];
 
 export default function SiteNavigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const { status, accountType, authError, signOut } = useAuth();
+  const accountLabel = accountType === "client" ? "Client" : "Provider";
+  const accountLinks = status === "signed-in"
+    ? [
+          {
+            href: "/account",
+            label: `My account · ${accountLabel}`,
+            detail: `You’re signed in as a ${accountLabel}.`,
+          },
+        ]
+    : status === "loading"
+      ? [
+          {
+            href: "/account",
+            label: "Checking your account...",
+            detail: "Please wait a moment",
+          },
+        ]
+      : [
+          {
+            href: "/auth?mode=signin&next=%2Faccount",
+            label: "Sign in",
+            detail: "Continue to your StaffConnect account",
+          },
+          {
+            href: "/auth?mode=signup&role=client&next=%2Faccount",
+            label: "Create an account",
+            detail: "Choose a Client or Provider account",
+          },
+        ];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -38,6 +72,10 @@ export default function SiteNavigation() {
     setIsOpen(false);
   }
 
+  async function handleSignOut() {
+    if (await signOut()) closeMenu();
+  }
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#142236]/75 text-white shadow-lg shadow-slate-950/5 backdrop-blur-xl">
@@ -58,6 +96,23 @@ export default function SiteNavigation() {
             </span>
           </button>
 
+          {status === "signed-in" && accountType ? (
+            <Link
+              href="/account"
+              aria-label={`My account, signed in as a ${accountLabel}`}
+              className="ml-auto shrink-0 rounded-full border border-white/25 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-white/10 sm:px-3"
+            >
+              {accountLabel}
+            </Link>
+          ) : status === "signed-out" || status === "unconfigured" ? (
+            <Link
+              href="/auth?mode=signin&next=%2Faccount"
+              className="ml-auto shrink-0 rounded-full px-2 py-2 text-xs font-semibold text-white underline underline-offset-4 hover:text-amber-200 sm:px-3 sm:text-sm"
+            >
+              Sign in
+            </Link>
+          ) : null}
+
           <nav aria-label="Main navigation" className="hidden items-center gap-8 md:flex">
             <Link href="/#how-it-works" className="text-sm font-medium text-slate-200 transition hover:text-white">
               How it works
@@ -65,7 +120,14 @@ export default function SiteNavigation() {
             <Link href="/#categories" className="text-sm font-medium text-slate-200 transition hover:text-white">
               Services
             </Link>
-            <Link href="/onboarding/provider" className="text-sm font-medium text-slate-200 transition hover:text-white">
+            <Link
+              href={
+                status === "signed-in" && accountType === "provider"
+                  ? "/onboarding/provider"
+                  : "/auth?mode=signup&role=provider&next=%2Faccount"
+              }
+              className="text-sm font-medium text-slate-200 transition hover:text-white"
+            >
               For professionals
             </Link>
           </nav>
@@ -128,7 +190,7 @@ export default function SiteNavigation() {
             Explore StaffConnect
           </p>
           <nav aria-label="Side navigation" className="flex flex-col gap-1">
-            {navigationLinks.map((item) => (
+            {[...navigationLinks, ...accountLinks].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -143,6 +205,22 @@ export default function SiteNavigation() {
               </Link>
             ))}
           </nav>
+
+          {status === "signed-in" && (
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              tabIndex={isOpen ? 0 : -1}
+              className="mt-4 rounded-xl border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
+            >
+              Sign out
+            </button>
+          )}
+          {authError && (
+            <p role="alert" className="mt-3 rounded-xl bg-rose-50 p-3 text-sm text-rose-800">
+              {authError}
+            </p>
+          )}
 
           <p className="mt-auto border-t border-slate-200/80 pt-5 text-xs leading-5 text-slate-500">
             A thoughtful way to find the right support for your home.

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ProfileDraftProvider } from "./onboarding/profile-draft-context";
+import { AuthProvider } from "./auth/auth-context";
 import SiteNavigation from "./site-navigation";
 import "./globals.css";
 
@@ -15,10 +16,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${geist.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-white text-slate-900 antialiased">
-        <ProfileDraftProvider>
-          <SiteNavigation />
-          {children}
-        </ProfileDraftProvider>
+        <AuthProvider>
+          <ProfileDraftProvider>
+            <SiteNavigation />
+            {children}
+          </ProfileDraftProvider>
+        </AuthProvider>
       </body>
     </html>
   );

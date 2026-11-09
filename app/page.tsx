@@ -52,7 +52,7 @@ export default function HomePage() {
                   Find household help <span aria-hidden="true">→</span>
                 </Link>
                 <Link
-                  href="/onboarding/provider"
+                  href="/auth?mode=signup&role=provider&next=%2Faccount"
                   className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white/80 px-6 py-3.5 text-sm font-bold text-[#172638] transition hover:border-amber-400 hover:bg-white"
                 >
                   Create a staff profile
@@ -208,7 +208,7 @@ export default function HomePage() {
               <p className="mt-4 leading-7 text-slate-300">Explore profiles or tell us what kind of support would make a difference.</p>
             </div>
             <Link
-              href="/onboarding/client"
+              href="/onboarding"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-6 py-3.5 text-sm font-bold text-[#142236] transition hover:bg-amber-300"
             >
               Get started <span aria-hidden="true">→</span>
@@ -228,8 +228,8 @@ export default function HomePage() {
           </div>
           <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-6 gap-y-3 text-sm">
             <Link href="/maids" className="transition hover:text-white">Find household help</Link>
-            <Link href="/onboarding/client" className="transition hover:text-white">Find help for your home</Link>
-            <Link href="/onboarding/provider" className="transition hover:text-white">Create a staff profile</Link>
+            <Link href="/auth?mode=signup&role=client&next=%2Faccount" className="transition hover:text-white">Create a Client account</Link>
+            <Link href="/auth?mode=signup&role=provider&next=%2Faccount" className="transition hover:text-white">Create a Provider account</Link>
             <Link href="/about" className="transition hover:text-white">About us</Link>
             <Link href="/contact" className="transition hover:text-white">Contact us</Link>
             <Link href="#how-it-works" className="transition hover:text-white">How it works</Link>

@@ -3,25 +3,25 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Get started",
-  description: "Choose an account type to preview StaffConnect onboarding.",
+  description: "Choose whether you are joining StaffConnect as a Client or Provider.",
 };
 
 const roles = [
   {
-    href: "/onboarding/client",
+    href: "/auth?mode=signup&role=client&next=%2Faccount",
     eyebrow: "CLIENT ACCOUNT · I’M HIRING",
     title: "I need household help",
     description:
-      "Share the kind of help you need, your Lagos or Oyo location, and the work arrangement that suits your household.",
-    action: "Continue as a Client",
+      "Create a Client account to explore household professionals and save profiles you want to revisit.",
+    action: "Create a Client account",
   },
   {
-    href: "/onboarding/provider",
+    href: "/auth?mode=signup&role=provider&next=%2Faccount",
     eyebrow: "PROVIDER ACCOUNT · I’M LOOKING FOR WORK",
     title: "I’m a household professional",
     description:
-      "Create a work profile with your skills, qualifications, preferred location, and availability.",
-    action: "Continue as a Provider",
+      "Create a Provider account first. You can then open a temporary work-profile preview from your account.",
+    action: "Create a Provider account",
   },
 ];
 
@@ -46,11 +46,9 @@ export default function OnboardingPage() {
         </div>
 
         <aside className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
-          <strong>Prototype, not account registration or sign-in.</strong> Use fictional
-          details only.
-          This preview does not send your information to a server, save it to your device,
-          verify identity, or create an account. Refreshing or closing this tab clears your
-          profile preview.
+          <strong>Your account type stays with your account.</strong> After signing up,
+          you’ll see whether you joined as a Client or Provider on your account page.
+          Provider work-profile previews are not yet published or permanently saved.
         </aside>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
