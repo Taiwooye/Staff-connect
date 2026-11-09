@@ -1,106 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-
-type Arrangement = "Live-in" | "Daily" | "Weekends";
-
-type MaidProfile = {
-  name: string;
-  initials: string;
-  area: string;
-  arrangement: Arrangement;
-  salaryMin: number;
-  salaryMax: number;
-  experience: string;
-  skills: string[];
-  availability: string;
-  about: string;
-};
-
-const profiles: MaidProfile[] = [
-  {
-    name: "Amara Okafor",
-    initials: "AO",
-    area: "Lekki",
-    arrangement: "Live-in",
-    salaryMin: 120000,
-    salaryMax: 150000,
-    experience: "4 years’ experience",
-    skills: ["Cleaning", "Laundry", "Cooking"],
-    availability: "Available this month",
-    about:
-      "Experienced with daily home routines, laundry care, and preparing simple family meals.",
-  },
-  {
-    name: "Chioma Eze",
-    initials: "CE",
-    area: "Ikeja",
-    arrangement: "Daily",
-    salaryMin: 100000,
-    salaryMax: 130000,
-    experience: "3 years’ experience",
-    skills: ["Cleaning", "Childcare", "Laundry"],
-    availability: "Available now",
-    about:
-      "Comfortable with a daily commute and helping families keep a tidy, child-friendly home.",
-  },
-  {
-    name: "Aisha Bello",
-    initials: "AB",
-    area: "Yaba",
-    arrangement: "Weekends",
-    salaryMin: 60000,
-    salaryMax: 80000,
-    experience: "2 years’ experience",
-    skills: ["Cleaning", "Cooking"],
-    availability: "Available weekends",
-    about:
-      "Available for weekend cleaning and meal preparation, with a focus on consistent routines.",
-  },
-  {
-    name: "Blessing Adeyemi",
-    initials: "BA",
-    area: "Surulere",
-    arrangement: "Daily",
-    salaryMin: 110000,
-    salaryMax: 140000,
-    experience: "5 years’ experience",
-    skills: ["Cleaning", "Laundry", "Cooking", "Childcare"],
-    availability: "Available in 2 weeks",
-    about:
-      "Has experience supporting busy households with cleaning, laundry, and supervised childcare.",
-  },
-  {
-    name: "Grace Nwosu",
-    initials: "GN",
-    area: "Ajah",
-    arrangement: "Live-in",
-    salaryMin: 130000,
-    salaryMax: 160000,
-    experience: "6 years’ experience",
-    skills: ["Cleaning", "Cooking", "Childcare"],
-    availability: "Available now",
-    about:
-      "Seeking a live-in role and experienced in household upkeep and caring for young children.",
-  },
-  {
-    name: "Kemi Ojo",
-    initials: "KO",
-    area: "Lekki",
-    arrangement: "Weekends",
-    salaryMin: 65000,
-    salaryMax: 85000,
-    experience: "3 years’ experience",
-    skills: ["Cleaning", "Laundry"],
-    availability: "Available weekends",
-    about:
-      "Available on weekends for home cleaning and laundry, with flexible start dates.",
-  },
-];
+import { useState } from "react";
+import { getAreasForState, launchStates } from "../locations";
+import { useProfileDraft } from "../onboarding/profile-draft-context";
+import { maidProfiles } from "./maid-profiles";
 
 const arrangements = ["Any arrangement", "Live-in", "Daily", "Weekends"] as const;
-const areas = ["All Lagos", "Ajah", "Ikeja", "Lekki", "Surulere", "Yaba"] as const;
 const skills = ["Cleaning", "Laundry", "Cooking", "Childcare"] as const;
 
 const naira = new Intl.NumberFormat("en-NG", {
@@ -110,42 +16,59 @@ const naira = new Intl.NumberFormat("en-NG", {
 });
 
 export default function MaidDirectory() {
+  const { savedProfileIds, toggleSavedProfile } = useProfileDraft();
   const [query, setQuery] = useState("");
-  const [area, setArea] = useState<(typeof areas)[number]>("All Lagos");
+  const [state, setState] = useState("");
+  const [area, setArea] = useState("");
   const [arrangement, setArrangement] =
     useState<(typeof arrangements)[number]>("Any arrangement");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recommended" | "salary-low" | "salary-high">(
     "recommended",
   );
+  const areaOptions = state
+    ? getAreasForState(state)
+    : launchStates.flatMap((locationState) => getAreasForState(locationState));
 
-  const filteredProfiles = useMemo(() => {
-    const search = query.trim().toLowerCase();
-    const matches = profiles.filter((profile) => {
+  const search = query.trim().toLowerCase();
+  const matches = maidProfiles.filter((profile) => {
       const matchesSearch =
         !search ||
-        [profile.name, profile.area, profile.experience, ...profile.skills]
+        [
+          profile.name,
+          profile.state,
+          profile.area,
+          profile.experience,
+          ...profile.skills,
+          ...profile.qualifications,
+          ...profile.languages,
+        ]
           .join(" ")
           .toLowerCase()
           .includes(search);
-      const matchesArea = area === "All Lagos" || profile.area === area;
+      const matchesState = !state || profile.state === state;
+      const matchesArea = !area || profile.area === area;
       const matchesArrangement =
         arrangement === "Any arrangement" || profile.arrangement === arrangement;
       const matchesSkills = selectedSkills.every((skill) => profile.skills.includes(skill));
+      const matchesSaved = !showSavedOnly || savedProfileIds.includes(profile.id);
 
-      return matchesSearch && matchesArea && matchesArrangement && matchesSkills;
-    });
-
-    if (sortOrder === "salary-low") {
-      return matches.sort((first, second) => first.salaryMin - second.salaryMin);
-    }
-
-    if (sortOrder === "salary-high") {
-      return matches.sort((first, second) => second.salaryMin - first.salaryMin);
-    }
-
-    return matches;
-  }, [area, arrangement, query, selectedSkills, sortOrder]);
+      return (
+        matchesSearch &&
+        matchesState &&
+        matchesArea &&
+        matchesArrangement &&
+        matchesSkills &&
+        matchesSaved
+      );
+  });
+  const filteredProfiles =
+    sortOrder === "salary-low"
+      ? matches.sort((first, second) => first.salaryMin - second.salaryMin)
+      : sortOrder === "salary-high"
+        ? matches.sort((first, second) => second.salaryMin - first.salaryMin)
+        : matches;
 
   function toggleSkill(skill: string) {
     setSelectedSkills((current) =>
@@ -157,17 +80,21 @@ export default function MaidDirectory() {
 
   function clearFilters() {
     setQuery("");
-    setArea("All Lagos");
+    setState("");
+    setArea("");
     setArrangement("Any arrangement");
     setSelectedSkills([]);
+    setShowSavedOnly(false);
     setSortOrder("recommended");
   }
 
   const hasFilters =
     query.trim() !== "" ||
-    area !== "All Lagos" ||
+    state !== "" ||
+    area !== "" ||
     arrangement !== "Any arrangement" ||
-    selectedSkills.length > 0;
+    selectedSkills.length > 0 ||
+    showSavedOnly;
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-slate-900">
@@ -180,20 +107,20 @@ export default function MaidDirectory() {
             /
           </span>
           <span aria-current="page" className="font-medium text-slate-700">
-            Find housemaids
+            Find professionals
           </span>
         </nav>
 
         <div className="mb-8 max-w-2xl">
           <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-800">
-            <span aria-hidden="true">⌖</span> Lagos, Nigeria
+            <span aria-hidden="true">⌖</span> Lagos and Oyo, Nigeria
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Find the right help for your home.
+            Find household professionals near you.
           </h1>
           <p className="mt-3 text-base leading-relaxed text-slate-600">
-            Browse housemaid profiles and narrow your search by neighbourhood, skills, and
-            work arrangement.
+            Browse sample profiles currently available in Lagos and Oyo. Compare skills,
+            qualifications, location, and work arrangements.
           </p>
         </div>
 
@@ -216,9 +143,9 @@ export default function MaidDirectory() {
           className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
         >
           <h2 id="filters-heading" className="mb-4 text-sm font-semibold text-slate-800">
-            Search housemaids
+            Search professionals
           </h2>
-          <div className="grid gap-4 md:grid-cols-[1.4fr_1fr_1fr]">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
             <label className="text-sm font-medium text-slate-700">
               Name or skill
               <input
@@ -230,14 +157,31 @@ export default function MaidDirectory() {
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
-              Neighbourhood
+              State
               <select
-                value={area}
-                onChange={(event) => setArea(event.target.value as (typeof areas)[number])}
+                value={state}
+                onChange={(event) => {
+                  setState(event.target.value);
+                  setArea("");
+                }}
                 className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
               >
-                {areas.map((option) => (
+                <option value="">All launch locations</option>
+                {launchStates.map((option) => (
                   <option key={option}>{option}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium text-slate-700">
+              City / area
+              <select
+                value={area}
+                onChange={(event) => setArea(event.target.value)}
+                className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+              >
+                <option value="">All areas</option>
+                {areaOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
                 ))}
               </select>
             </label>
@@ -281,13 +225,29 @@ export default function MaidDirectory() {
               })}
             </div>
           </fieldset>
+          <button
+            type="button"
+            aria-pressed={showSavedOnly}
+            onClick={() => setShowSavedOnly((current) => !current)}
+            className={`mt-5 inline-flex min-h-10 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              showSavedOnly
+                ? "border-rose-300 bg-rose-50 text-rose-800"
+                : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:text-rose-700"
+            }`}
+          >
+            <span aria-hidden="true">♡</span>
+            Saved profiles <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs">{savedProfileIds.length}</span>
+          </button>
+          <p className="mt-2 text-xs text-slate-500">
+            Saved profiles are kept for this browser session only.
+          </p>
         </section>
 
         <section aria-labelledby="results-heading" className="mt-8">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 id="results-heading" className="text-xl font-semibold">
-                Housemaid profiles
+                Household professionals
               </h2>
               <p className="mt-1 text-sm text-slate-500" aria-live="polite">
                 {filteredProfiles.length} sample{" "}
@@ -327,22 +287,27 @@ export default function MaidDirectory() {
             <ul className="grid list-none gap-4 p-0 md:grid-cols-2">
               {filteredProfiles.map((profile) => (
                 <li
-                  key={profile.name}
+                  key={profile.id}
                   className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                 >
                   <article>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
-                        <div
-                          aria-hidden="true"
-                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 font-semibold text-amber-900"
+                        <Link
+                          href={`/maids/${profile.id}`}
+                          aria-label={`View ${profile.name}'s profile`}
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 font-semibold text-amber-900 transition hover:ring-2 hover:ring-amber-400"
                         >
                           {profile.initials}
-                        </div>
+                        </Link>
                         <div className="min-w-0">
-                          <h3 className="truncate text-lg font-semibold">{profile.name}</h3>
+                          <h3 className="truncate text-lg font-semibold">
+                            <Link href={`/maids/${profile.id}`} className="transition hover:text-amber-800">
+                              {profile.name}
+                            </Link>
+                          </h3>
                           <p className="mt-0.5 text-sm text-slate-500">
-                            {profile.area}, Lagos · {profile.experience}
+                            {profile.area}, {profile.state} · {profile.experience}
                           </p>
                         </div>
                       </div>
@@ -365,6 +330,11 @@ export default function MaidDirectory() {
                       ))}
                     </div>
 
+                    <p className="mt-4 text-sm text-slate-600">
+                      <span className="font-medium text-slate-800">Qualifications:</span>{" "}
+                      {profile.qualifications.slice(0, 2).join(" · ")}
+                    </p>
+
                     <div className="mt-5 flex flex-col gap-1 border-t border-slate-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -377,30 +347,47 @@ export default function MaidDirectory() {
                       <p className="text-sm text-slate-500">{profile.availability}</p>
                     </div>
 
-                    <details className="group mt-4 border-t border-slate-100 pt-4">
-                      <summary className="cursor-pointer list-none text-sm font-semibold text-amber-700 outline-none hover:text-amber-800 focus-visible:ring-2 focus-visible:ring-amber-500 [&::-webkit-details-marker]:hidden">
-                        View sample profile
-                        <span aria-hidden="true" className="ml-1 inline-block transition group-open:rotate-180">
-                          ↓
-                        </span>
-                      </summary>
-                      <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                        {profile.about}
-                      </p>
-                      <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                        Sample information only. Identity, references, and work history have
-                        not been checked.
-                      </p>
-                    </details>
+                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                      <Link
+                        href={`/maids/${profile.id}`}
+                        className="text-sm font-semibold text-amber-800 hover:text-amber-600"
+                      >
+                        View full profile <span aria-hidden="true">→</span>
+                      </Link>
+                      <button
+                        type="button"
+                        aria-pressed={savedProfileIds.includes(profile.id)}
+                        aria-label={
+                          savedProfileIds.includes(profile.id)
+                            ? `Remove ${profile.name} from saved profiles`
+                            : `Save ${profile.name} profile`
+                        }
+                        onClick={() => toggleSavedProfile(profile.id)}
+                        className={`flex min-h-10 items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                          savedProfileIds.includes(profile.id)
+                            ? "border-rose-200 bg-rose-50 text-rose-700"
+                            : "border-slate-200 text-slate-600 hover:border-rose-200 hover:text-rose-700"
+                        }`}
+                      >
+                        <span aria-hidden="true">{savedProfileIds.includes(profile.id) ? "♥" : "♡"}</span>
+                        {savedProfileIds.includes(profile.id) ? "Saved" : "Save"}
+                      </button>
+                    </div>
                   </article>
                 </li>
               ))}
             </ul>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-              <p className="text-lg font-semibold text-slate-800">No profiles match those filters</p>
+              <p className="text-lg font-semibold text-slate-800">
+                {showSavedOnly && savedProfileIds.length === 0
+                  ? "You haven’t saved any profiles yet"
+                  : "No profiles match those filters"}
+              </p>
               <p className="mt-2 text-sm text-slate-500">
-                Try another neighbourhood or remove a skill to see more sample profiles.
+                {showSavedOnly && savedProfileIds.length === 0
+                  ? "Save a professional’s profile to find it here during this session."
+                  : "Try another location or remove a skill to see more sample profiles."}
               </p>
               <button
                 type="button"

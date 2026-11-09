@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 export type HouseholdProfileDraft = {
   displayName: string;
+  state: string;
   area: string;
   needs: string[];
   arrangement: string;
@@ -11,8 +12,14 @@ export type HouseholdProfileDraft = {
   startTiming: string;
 };
 
+export type ProfileImage = {
+  name: string;
+  dataUrl: string;
+};
+
 export type ProviderProfileDraft = {
   displayName: string;
+  state: string;
   area: string;
   skills: string[];
   arrangements: string[];
@@ -20,13 +27,20 @@ export type ProviderProfileDraft = {
   availability: string;
   salary: string;
   bio: string;
+  qualifications: string[];
+  languages: string[];
+  interests: string[];
+  profilePhoto: ProfileImage | null;
+  galleryImages: ProfileImage[];
 };
 
 type ProfileDraftContextValue = {
   householdProfile: HouseholdProfileDraft | null;
   providerProfile: ProviderProfileDraft | null;
+  savedProfileIds: string[];
   saveHouseholdProfile: (profile: HouseholdProfileDraft) => void;
   saveProviderProfile: (profile: ProviderProfileDraft) => void;
+  toggleSavedProfile: (profileId: string) => void;
 };
 
 const ProfileDraftContext = createContext<ProfileDraftContextValue | null>(null);
@@ -38,15 +52,26 @@ export function ProfileDraftProvider({ children }: { children: React.ReactNode }
   const [providerProfile, setProviderProfile] = useState<ProviderProfileDraft | null>(
     null,
   );
+  const [savedProfileIds, setSavedProfileIds] = useState<string[]>([]);
+
+  const toggleSavedProfile = useCallback((profileId: string) => {
+    setSavedProfileIds((current) =>
+      current.includes(profileId)
+        ? current.filter((savedId) => savedId !== profileId)
+        : [...current, profileId],
+    );
+  }, []);
 
   const value = useMemo(
     () => ({
       householdProfile,
       providerProfile,
+      savedProfileIds,
       saveHouseholdProfile: setHouseholdProfile,
       saveProviderProfile: setProviderProfile,
+      toggleSavedProfile,
     }),
-    [householdProfile, providerProfile],
+    [householdProfile, providerProfile, savedProfileIds, toggleSavedProfile],
   );
 
   return <ProfileDraftContext.Provider value={value}>{children}</ProfileDraftContext.Provider>;

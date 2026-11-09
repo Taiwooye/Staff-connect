@@ -1,13 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import {
   useProfileDraft,
   type HouseholdProfileDraft,
+  type ProfileImage,
   type ProviderProfileDraft,
 } from "./profile-draft-context";
+import { getAreasForState, launchStates } from "../locations";
 
 type Role = "client" | "provider";
 
@@ -15,6 +18,7 @@ type FormDraft = {
   name: string;
   email: string;
   phone: string;
+  state: string;
   area: string;
   needs: string[];
   arrangement: string;
@@ -26,9 +30,56 @@ type FormDraft = {
   availability: string;
   salary: string;
   bio: string;
+  qualifications: string;
+  languages: string;
+  interests: string;
+  profilePhoto: ProfileImage | null;
+  galleryImages: ProfileImage[];
 };
 
-const areas = ["Ajah", "Ikeja", "Lekki", "Surulere", "Yaba", "Other Lagos area"];
+const maxImageSize = 5 * 1024 * 1024;
+const maxGalleryImages = 2;
+
+async function readProfileImage(file: File): Promise<ProfileImage> {
+  if (file.size > maxImageSize) {
+    throw new Error("Each image must be 5 MB or smaller.");
+  }
+
+  const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const isPng =
+    header[0] === 0x89 &&
+    header[1] === 0x50 &&
+    header[2] === 0x4e &&
+    header[3] === 0x47 &&
+    header[4] === 0x0d &&
+    header[5] === 0x0a &&
+    header[6] === 0x1a &&
+    header[7] === 0x0a;
+  const isJpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+  const isWebp =
+    String.fromCharCode(...header.slice(0, 4)) === "RIFF" &&
+    String.fromCharCode(...header.slice(8, 12)) === "WEBP";
+
+  if (!isPng && !isJpeg && !isWebp) {
+    throw new Error("Choose a valid JPEG, PNG, or WebP image.");
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        reject(new Error(`Could not read ${file.name}. Please try another image.`));
+        return;
+      }
+
+      resolve({ name: file.name, dataUrl: reader.result });
+    };
+    reader.onerror = () => reject(new Error(`Could not read ${file.name}. Please try again.`));
+    reader.onabort = () => reject(new Error(`Reading ${file.name} was cancelled.`));
+    reader.readAsDataURL(file);
+  });
+}
+
 const householdNeeds = ["Cleaning", "Laundry", "Cooking", "Childcare"];
 const providerSkills = ["Cleaning", "Laundry", "Cooking", "Childcare"];
 const workArrangements = ["Live-in", "Daily", "Weekends"];
@@ -49,6 +100,7 @@ const initialDraft: FormDraft = {
   name: "",
   email: "",
   phone: "",
+  state: "",
   area: "",
   needs: [],
   arrangement: "",
@@ -60,6 +112,11 @@ const initialDraft: FormDraft = {
   availability: "",
   salary: "",
   bio: "",
+  qualifications: "",
+  languages: "",
+  interests: "",
+  profilePhoto: null,
+  galleryImages: [],
 };
 
 export default function OnboardingFlow({ role }: { role: Role }) {
@@ -69,7 +126,11 @@ export default function OnboardingFlow({ role }: { role: Role }) {
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const isClient = role === "client";
-  const stepTitles = ["Contact", "Your needs", "Verification & review"];
+  const stepTitles = [
+    "Contact",
+    isClient ? "Your needs" : "Your profile",
+    "Verification & review",
+  ];
   const pageTitle = isClient ? "Set up your household profile" : "Set up your work profile";
 
   function updateDraft<Key extends keyof FormDraft>(key: Key, value: FormDraft[Key]) {
@@ -83,6 +144,54 @@ export default function OnboardingFlow({ role }: { role: Role }) {
         ? current[key].filter((choice) => choice !== value)
         : [...current[key], value],
     }));
+  }
+
+  async function handleProfilePhotoChange(file: File | undefined) {
+    if (!file) return;
+
+    setError("");
+
+    try {
+      updateDraft("profilePhoto", await readProfileImage(file));
+    } catch (imageError) {
+      setError(
+        imageError instanceof Error
+          ? imageError.message
+          : "Could not read the profile photo. Please try another image.",
+      );
+    }
+  }
+
+  async function handleGalleryChange(files: FileList | null) {
+    if (!files?.length) return;
+
+    const selectedFiles = Array.from(files);
+    const remainingSlots = maxGalleryImages - draft.galleryImages.length;
+
+    if (selectedFiles.length > remainingSlots) {
+      setError(
+        `You can add ${remainingSlots === 0 ? "no more" : `only ${remainingSlots} more`} gallery ${
+          remainingSlots === 1 ? "image" : "images"
+        }.`,
+      );
+      return;
+    }
+
+    setError("");
+
+    try {
+      const images = await Promise.all(selectedFiles.map(readProfileImage));
+      setDraft((current) => ({
+        ...current,
+        galleryImages: [...current.galleryImages, ...images],
+      }));
+    } catch (imageError) {
+      setError(
+        imageError instanceof Error
+          ? imageError.message
+          : "Could not read the gallery images. Please try again.",
+      );
+    }
   }
 
   function submitStep(event: FormEvent<HTMLFormElement>) {
@@ -122,6 +231,7 @@ export default function OnboardingFlow({ role }: { role: Role }) {
     if (isClient) {
       const profile: HouseholdProfileDraft = {
         displayName,
+        state: draft.state,
         area: draft.area,
         needs: draft.needs,
         arrangement: draft.arrangement,
@@ -135,6 +245,7 @@ export default function OnboardingFlow({ role }: { role: Role }) {
 
     const profile: ProviderProfileDraft = {
       displayName,
+      state: draft.state,
       area: draft.area,
       skills: draft.skills,
       arrangements: draft.arrangements,
@@ -142,6 +253,20 @@ export default function OnboardingFlow({ role }: { role: Role }) {
       availability: draft.availability,
       salary: draft.salary,
       bio: draft.bio.trim(),
+      qualifications: draft.qualifications
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      languages: draft.languages
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      interests: draft.interests
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      profilePhoto: draft.profilePhoto,
+      galleryImages: draft.galleryImages,
     };
     saveProviderProfile(profile);
     router.push("/profiles/provider");
@@ -159,7 +284,7 @@ export default function OnboardingFlow({ role }: { role: Role }) {
 
         <div className="mt-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">
-            {isClient ? "Employer" : "Housemaid"} · Lagos, Nigeria
+            {isClient ? "Employer" : "Household professional"} · Lagos and Oyo, Nigeria
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
             {pageTitle}
@@ -253,15 +378,36 @@ export default function OnboardingFlow({ role }: { role: Role }) {
                   />
                 </label>
                 <label className="text-sm font-medium text-slate-700 sm:col-span-2">
-                  Lagos neighbourhood
+                  State
+                  <select
+                    required
+                    value={draft.state}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        state: event.target.value,
+                        area: "",
+                      }))
+                    }
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  >
+                    <option value="">Choose a state</option>
+                    {launchStates.map((state) => (
+                      <option key={state}>{state}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+                  City / neighbourhood
                   <select
                     required
                     value={draft.area}
                     onChange={(event) => updateDraft("area", event.target.value)}
-                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                    disabled={!draft.state}
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 disabled:bg-slate-100 disabled:text-slate-500"
                   >
-                    <option value="">Choose an area</option>
-                    {areas.map((area) => (
+                    <option value="">Choose a city or area</option>
+                    {getAreasForState(draft.state).map((area) => (
                       <option key={area}>{area}</option>
                     ))}
                   </select>
@@ -441,6 +587,36 @@ export default function OnboardingFlow({ role }: { role: Role }) {
                   </select>
                 </label>
                 <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+                  Qualifications or relevant training (optional)
+                  <input
+                    maxLength={240}
+                    value={draft.qualifications}
+                    onChange={(event) => updateDraft("qualifications", event.target.value)}
+                    placeholder="Separate items with commas, e.g. first aid, food hygiene"
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  Languages (optional)
+                  <input
+                    maxLength={120}
+                    value={draft.languages}
+                    onChange={(event) => updateDraft("languages", event.target.value)}
+                    placeholder="e.g. English, Yoruba"
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  Interests (optional)
+                  <input
+                    maxLength={120}
+                    value={draft.interests}
+                    onChange={(event) => updateDraft("interests", event.target.value)}
+                    placeholder="e.g. cooking, gardening"
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  />
+                </label>
+                <label className="text-sm font-medium text-slate-700 sm:col-span-2">
                   Short introduction (optional)
                   <textarea
                     rows={3}
@@ -455,6 +631,115 @@ export default function OnboardingFlow({ role }: { role: Role }) {
                   </span>
                 </label>
               </div>
+              <section aria-labelledby="profile-photos-heading" className="mt-7 border-t border-slate-100 pt-6">
+                <h3 id="profile-photos-heading" className="text-base font-semibold text-slate-800">
+                  Profile photos
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                  Add one profile photo and up to two gallery images. JPEG, PNG, or WebP;
+                  maximum 5 MB each. Images stay in this temporary preview and aren’t uploaded.
+                </p>
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="profile-photo" className="text-sm font-medium text-slate-700">
+                      Profile photo <span className="font-normal text-slate-500">(1 max)</span>
+                    </label>
+                    <input
+                      id="profile-photo"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        void handleProfilePhotoChange(event.currentTarget.files?.[0]);
+                        event.currentTarget.value = "";
+                      }}
+                      className="mt-2 block w-full min-w-0 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-50 file:px-3 file:py-2 file:font-semibold file:text-amber-900 hover:file:bg-amber-100"
+                    />
+                    {draft.profilePhoto && (
+                      <div className="mt-3 flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+                        <Image
+                          src={draft.profilePhoto.dataUrl}
+                          alt="Profile photo preview"
+                          width={56}
+                          height={56}
+                          unoptimized
+                          className="h-14 w-14 rounded-full object-cover"
+                        />
+                        <span className="min-w-0 flex-1 truncate text-sm text-slate-600">
+                          {draft.profilePhoto.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateDraft("profilePhoto", null)}
+                          className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-rose-700 hover:bg-rose-50"
+                          aria-label="Remove profile photo"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="gallery-photos" className="text-sm font-medium text-slate-700">
+                      Gallery images <span className="font-normal text-slate-500">(2 max)</span>
+                    </label>
+                    <input
+                      id="gallery-photos"
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={draft.galleryImages.length >= maxGalleryImages}
+                      onChange={(event) => {
+                        void handleGalleryChange(event.currentTarget.files);
+                        event.currentTarget.value = "";
+                      }}
+                      className="mt-2 block w-full min-w-0 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-50 file:px-3 file:py-2 file:font-semibold file:text-amber-900 hover:file:bg-amber-100 disabled:opacity-50"
+                    />
+                    {draft.galleryImages.length > 0 && (
+                      <ul className="mt-3 grid list-none grid-cols-2 gap-3 p-0">
+                        {draft.galleryImages.map((image, index) => (
+                          <li key={`${image.name}-${index}`} className="min-w-0">
+                            <Image
+                              src={image.dataUrl}
+                              alt={`Gallery image ${index + 1} preview`}
+                              width={640}
+                              height={480}
+                              unoptimized
+                              className="aspect-[4/3] w-full rounded-lg object-cover"
+                            />
+                            <div className="mt-1 flex items-center gap-1">
+                              <span className="min-w-0 flex-1 truncate text-xs text-slate-500">
+                                {image.name}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDraft((current) => ({
+                                    ...current,
+                                    galleryImages: current.galleryImages.filter(
+                                      (_, imageIndex) => imageIndex !== index,
+                                    ),
+                                  }))
+                                }
+                                className="shrink-0 rounded px-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                                aria-label={`Remove gallery image ${index + 1}`}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="mt-2 text-xs text-slate-500">
+                      {draft.galleryImages.length} of {maxGalleryImages} gallery images selected
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+                Qualifications and languages are self-reported in this demo. Do not include
+                certificate numbers or private document details.
+              </p>
             </section>
           )}
 
@@ -485,7 +770,7 @@ export default function OnboardingFlow({ role }: { role: Role }) {
                 details in a public profile. Before launch, confirm lawful purpose, consent,
                 retention, and secure handling with Nigerian privacy counsel and the chosen
                 verification and payment providers. Confirm age eligibility and household
-                safeguarding requirements for Lagos before launch; this demo does not collect
+                safeguarding requirements for Lagos and Oyo before launch; this demo does not collect
                 dates of birth or identity numbers.
               </aside>
               <p className="mt-5 rounded-lg bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">

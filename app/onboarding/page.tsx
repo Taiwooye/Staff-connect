@@ -12,16 +12,16 @@ const roles = [
     eyebrow: "I’m hiring",
     title: "I need household help",
     description:
-      "Share the kind of help you need, your Lagos area, and the work arrangement that suits your household.",
+      "Share the kind of help you need, your Lagos or Oyo location, and the work arrangement that suits your household.",
     action: "Continue as an employer",
   },
   {
     href: "/onboarding/provider",
     eyebrow: "I’m looking for work",
-    title: "I’m a housemaid",
+    title: "I’m a household professional",
     description:
-      "Create a simple work profile with your skills, preferred arrangement, and availability.",
-    action: "Continue as a housemaid",
+      "Create a work profile with your skills, qualifications, preferred location, and availability.",
+    action: "Continue as a professional",
   },
 ];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useProfileDraft } from "../onboarding/profile-draft-context";
 
@@ -35,9 +36,11 @@ export default function ProfilePreview({ role }: { role: Role }) {
         ) : role === "client" && householdProfile ? (
           <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="bg-slate-900 px-6 py-7 text-white sm:px-8">
-              <p className="text-sm font-medium text-amber-300">Household · Lagos</p>
+              <p className="text-sm font-medium text-amber-300">
+                Household · {householdProfile.state}
+              </p>
               <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-                Household in {householdProfile.area}
+                Household in {householdProfile.area}, {householdProfile.state}
               </h1>
               <p className="mt-2 text-sm text-slate-300">Employer profile preview</p>
             </div>
@@ -88,12 +91,38 @@ export default function ProfilePreview({ role }: { role: Role }) {
         ) : role === "provider" && providerProfile ? (
           <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="bg-slate-900 px-6 py-7 text-white sm:px-8">
-              <p className="text-sm font-medium text-amber-300">Housemaid · Lagos</p>
-              <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-                {providerProfile.displayName}
-              </h1>
+              <p className="text-sm font-medium text-amber-300">
+                Household professional · {providerProfile.state}
+              </p>
+              <div className="mt-2 flex items-center gap-4">
+                {providerProfile.profilePhoto ? (
+                  <Image
+                    src={providerProfile.profilePhoto.dataUrl}
+                    alt={`${providerProfile.displayName} profile photo`}
+                    width={72}
+                    height={72}
+                    unoptimized
+                    className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-[72px] sm:w-[72px]"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber-300 text-xl font-bold text-slate-900 sm:h-[72px] sm:w-[72px]"
+                  >
+                    {providerProfile.displayName
+                      .split(/\s+/)
+                      .map((part) => part[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                )}
+                <h1 className="break-words text-2xl font-bold sm:text-3xl">
+                  {providerProfile.displayName}
+                </h1>
+              </div>
               <p className="mt-2 text-sm text-slate-300">
-                {providerProfile.area} · Work profile preview
+                {providerProfile.area}, {providerProfile.state} · Work profile preview
               </p>
             </div>
             <div className="grid gap-7 p-6 sm:grid-cols-[1.4fr_1fr] sm:p-8">
@@ -102,6 +131,27 @@ export default function ProfilePreview({ role }: { role: Role }) {
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">
                   {providerProfile.bio || "No introduction added."}
                 </p>
+                {providerProfile.galleryImages.length > 0 && (
+                  <section aria-labelledby="gallery-heading">
+                    <h2 id="gallery-heading" className="mt-7 text-lg font-semibold">
+                      Photo gallery
+                    </h2>
+                    <ul className="mt-3 grid list-none grid-cols-2 gap-3 p-0">
+                      {providerProfile.galleryImages.map((image, index) => (
+                        <li key={`${image.name}-${index}`} className="min-w-0">
+                          <Image
+                            src={image.dataUrl}
+                            alt={`${providerProfile.displayName} gallery photo ${index + 1}`}
+                            width={640}
+                            height={480}
+                            unoptimized
+                            className="aspect-[4/3] w-full rounded-xl object-cover"
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
                 <h2 className="mt-7 text-lg font-semibold">Skills</h2>
                 <ul className="mt-3 flex list-none flex-wrap gap-2 p-0">
                   {providerProfile.skills.map((skill) => (
@@ -113,6 +163,24 @@ export default function ProfilePreview({ role }: { role: Role }) {
                     </li>
                   ))}
                 </ul>
+                <h2 className="mt-7 text-lg font-semibold">Qualifications & training</h2>
+                {providerProfile.qualifications.length > 0 ? (
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
+                    {providerProfile.qualifications.map((qualification) => (
+                      <li key={qualification}>{qualification}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500">Not added</p>
+                )}
+                <h2 className="mt-7 text-lg font-semibold">Languages</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  {providerProfile.languages.join(", ") || "Not added"}
+                </p>
+                <h2 className="mt-7 text-lg font-semibold">Interests</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  {providerProfile.interests.join(", ") || "Not added"}
+                </p>
                 <p className="mt-6 text-sm text-slate-500">Work arrangements</p>
                 <p className="mt-1 font-medium">
                   {providerProfile.arrangements.join(", ")}
