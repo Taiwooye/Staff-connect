@@ -69,7 +69,9 @@ export default async function MaidProfilePage({
                 <h1 className="mt-1 break-words text-2xl font-bold sm:text-3xl">
                   {profile.name}
                 </h1>
-                <p className="mt-1 text-sm text-slate-300">{profile.experience}</p>
+                <p className="mt-1 text-sm text-slate-300">
+                  {profile.gender} · {profile.experience}
+                </p>
               </div>
             </div>
             <SaveProfileButton profileId={profile.id} profileName={profile.name} />

@@ -37,9 +37,11 @@ export type ProviderProfileDraft = {
 type ProfileDraftContextValue = {
   householdProfile: HouseholdProfileDraft | null;
   providerProfile: ProviderProfileDraft | null;
+  providerProfileSaved: boolean;
   savedProfileIds: string[];
   saveHouseholdProfile: (profile: HouseholdProfileDraft) => void;
   saveProviderProfile: (profile: ProviderProfileDraft) => void;
+  markProviderProfileSaved: () => void;
   toggleSavedProfile: (profileId: string) => void;
 };
 
@@ -52,7 +54,17 @@ export function ProfileDraftProvider({ children }: { children: React.ReactNode }
   const [providerProfile, setProviderProfile] = useState<ProviderProfileDraft | null>(
     null,
   );
+  const [providerProfileSaved, setProviderProfileSaved] = useState(false);
   const [savedProfileIds, setSavedProfileIds] = useState<string[]>([]);
+
+  const saveProviderProfile = useCallback((profile: ProviderProfileDraft) => {
+    setProviderProfile(profile);
+    setProviderProfileSaved(false);
+  }, []);
+
+  const markProviderProfileSaved = useCallback(() => {
+    setProviderProfileSaved(true);
+  }, []);
 
   const toggleSavedProfile = useCallback((profileId: string) => {
     setSavedProfileIds((current) =>
@@ -66,12 +78,22 @@ export function ProfileDraftProvider({ children }: { children: React.ReactNode }
     () => ({
       householdProfile,
       providerProfile,
+      providerProfileSaved,
       savedProfileIds,
       saveHouseholdProfile: setHouseholdProfile,
-      saveProviderProfile: setProviderProfile,
+      saveProviderProfile,
+      markProviderProfileSaved,
       toggleSavedProfile,
     }),
-    [householdProfile, providerProfile, savedProfileIds, toggleSavedProfile],
+    [
+      householdProfile,
+      providerProfile,
+      providerProfileSaved,
+      savedProfileIds,
+      saveProviderProfile,
+      markProviderProfileSaved,
+      toggleSavedProfile,
+    ],
   );
 
   return <ProfileDraftContext.Provider value={value}>{children}</ProfileDraftContext.Provider>;

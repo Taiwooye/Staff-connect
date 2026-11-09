@@ -1,13 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getAreasForState, launchStates } from "../locations";
 import { useProfileDraft } from "../onboarding/profile-draft-context";
 import { maidProfiles } from "./maid-profiles";
+import {
+  allHouseholdSkills,
+  serviceFilters,
+  type ServiceCategoryId,
+} from "./services";
 
 const arrangements = ["Any arrangement", "Live-in", "Daily", "Weekends"] as const;
-const skills = ["Cleaning", "Laundry", "Cooking", "Childcare"] as const;
+const sortOptions = [
+  "recommended",
+  "location",
+  "experience",
+  "gender",
+  "availability",
+  "arrangement",
+  "salary-low",
+  "salary-high",
+] as const;
+
+type SortOrder = (typeof sortOptions)[number];
 
 const naira = new Intl.NumberFormat("en-NG", {
   style: "currency",
@@ -15,18 +32,50 @@ const naira = new Intl.NumberFormat("en-NG", {
   maximumFractionDigits: 0,
 });
 
-export default function MaidDirectory() {
-  const { savedProfileIds, toggleSavedProfile } = useProfileDraft();
+function availabilityRank(availability: string) {
+  if (availability === "Available now") return 0;
+  if (availability.includes("2 weeks")) return 1;
+  if (availability === "Available this month") return 2;
+  return 3;
+}
+
+export default function MaidDirectory({
+  initialService,
+}: {
+  initialService: ServiceCategoryId;
+}) {
+  const router = useRouter();
+  const {
+    savedProfileIds,
+    toggleSavedProfile,
+    providerProfileSaved,
+  } = useProfileDraft();
   const [query, setQuery] = useState("");
   const [state, setState] = useState("");
   const [area, setArea] = useState("");
+  const serviceId = initialService;
   const [arrangement, setArrangement] =
     useState<(typeof arrangements)[number]>("Any arrangement");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"recommended" | "salary-low" | "salary-high">(
-    "recommended",
-  );
+  const [sortOrder, setSortOrder] = useState<SortOrder>("recommended");
+  const [showFilters, setShowFilters] = useState(initialService !== "all");
+  const service =
+    serviceFilters.find((option) => option.id === serviceId) ?? serviceFilters[0];
+  const skills = serviceId === "all" ? allHouseholdSkills : service.skills;
+
+  function changeService(value: string) {
+    const nextService = serviceFilters.find((option) => option.id === value);
+    if (!nextService) return;
+
+    setSelectedSkills([]);
+    setShowFilters(true);
+    router.push(
+      nextService.id === "all" ? "/maids" : `/maids?service=${nextService.id}`,
+      { scroll: false },
+    );
+  }
+
   const areaOptions = state
     ? getAreasForState(state)
     : launchStates.flatMap((locationState) => getAreasForState(locationState));
@@ -40,6 +89,7 @@ export default function MaidDirectory() {
           profile.state,
           profile.area,
           profile.experience,
+          profile.gender,
           ...profile.skills,
           ...profile.qualifications,
           ...profile.languages,
@@ -51,6 +101,8 @@ export default function MaidDirectory() {
       const matchesArea = !area || profile.area === area;
       const matchesArrangement =
         arrangement === "Any arrangement" || profile.arrangement === arrangement;
+      const matchesService =
+        serviceId === "all" || service.skills.some((skill) => profile.skills.includes(skill));
       const matchesSkills = selectedSkills.every((skill) => profile.skills.includes(skill));
       const matchesSaved = !showSavedOnly || savedProfileIds.includes(profile.id);
 
@@ -59,16 +111,33 @@ export default function MaidDirectory() {
         matchesState &&
         matchesArea &&
         matchesArrangement &&
+        matchesService &&
         matchesSkills &&
         matchesSaved
       );
   });
-  const filteredProfiles =
-    sortOrder === "salary-low"
-      ? matches.sort((first, second) => first.salaryMin - second.salaryMin)
-      : sortOrder === "salary-high"
-        ? matches.sort((first, second) => second.salaryMin - first.salaryMin)
-        : matches;
+  const filteredProfiles = [...matches].sort((first, second) => {
+    switch (sortOrder) {
+      case "location":
+        return first.state.localeCompare(second.state) || first.area.localeCompare(second.area);
+      case "experience":
+        return second.experienceYears - first.experienceYears;
+      case "gender":
+        return first.gender.localeCompare(second.gender);
+      case "availability":
+        return availabilityRank(first.availability) - availabilityRank(second.availability);
+      case "arrangement":
+        return (
+          arrangements.indexOf(first.arrangement) - arrangements.indexOf(second.arrangement)
+        );
+      case "salary-low":
+        return first.salaryMin - second.salaryMin;
+      case "salary-high":
+        return second.salaryMin - first.salaryMin;
+      default:
+        return 0;
+    }
+  });
 
   function toggleSkill(skill: string) {
     setSelectedSkills((current) =>
@@ -86,15 +155,19 @@ export default function MaidDirectory() {
     setSelectedSkills([]);
     setShowSavedOnly(false);
     setSortOrder("recommended");
+    router.replace("/maids", { scroll: false });
   }
 
-  const hasFilters =
-    query.trim() !== "" ||
-    state !== "" ||
-    area !== "" ||
-    arrangement !== "Any arrangement" ||
-    selectedSkills.length > 0 ||
-    showSavedOnly;
+  const activeFilters = [
+    ...(serviceId !== "all" ? [service.label] : []),
+    ...(query.trim() ? [`Search: ${query.trim()}`] : []),
+    ...(state ? [state] : []),
+    ...(area ? [area] : []),
+    ...(arrangement !== "Any arrangement" ? [arrangement] : []),
+    ...selectedSkills,
+    ...(showSavedOnly ? ["Saved profiles"] : []),
+  ];
+  const activeFilterCount = activeFilters.length;
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-slate-900">
@@ -124,6 +197,17 @@ export default function MaidDirectory() {
           </p>
         </div>
 
+        {providerProfileSaved && (
+          <aside
+            role="status"
+            className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-relaxed text-emerald-950"
+          >
+            <strong>Your provider profile draft is saved for this tab.</strong>{" "}
+            It is not published or visible to clients. Explore the sample household
+            listings below; your draft will clear when this session ends.
+          </aside>
+        )}
+
         <aside
           aria-label="Sample listing notice"
           className="mb-8 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950"
@@ -142,11 +226,38 @@ export default function MaidDirectory() {
           aria-labelledby="filters-heading"
           className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
         >
-          <h2 id="filters-heading" className="mb-4 text-sm font-semibold text-slate-800">
-            Search professionals
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-            <label className="text-sm font-medium text-slate-700">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 id="filters-heading" className="text-sm font-semibold text-slate-800">
+              Find a better match
+            </h2>
+            <button
+              type="button"
+              aria-controls="directory-filters"
+              aria-expanded={showFilters}
+              onClick={() => setShowFilters((current) => !current)}
+              className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-amber-400 hover:bg-amber-50 sm:self-auto"
+            >
+              <span aria-hidden="true">☷</span>
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+              <span aria-hidden="true">{showFilters ? "−" : "+"}</span>
+            </button>
+          </div>
+          {showFilters && (
+            <div id="directory-filters" className="mt-5 border-t border-slate-100 pt-5">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.3fr_1.2fr_1fr_1fr_1fr]">
+                <label className="text-sm font-medium text-slate-700">
+                  Type of help
+                  <select
+                    value={serviceId}
+                    onChange={(event) => changeService(event.target.value)}
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  >
+                    {serviceFilters.map((option) => (
+                      <option key={option.id} value={option.id}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm font-medium text-slate-700">
               Name or skill
               <input
                 type="search"
@@ -156,7 +267,7 @@ export default function MaidDirectory() {
                 className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
               />
             </label>
-            <label className="text-sm font-medium text-slate-700">
+                <label className="text-sm font-medium text-slate-700">
               State
               <select
                 value={state}
@@ -172,7 +283,7 @@ export default function MaidDirectory() {
                 ))}
               </select>
             </label>
-            <label className="text-sm font-medium text-slate-700">
+                <label className="text-sm font-medium text-slate-700">
               City / area
               <select
                 value={area}
@@ -185,7 +296,7 @@ export default function MaidDirectory() {
                 ))}
               </select>
             </label>
-            <label className="text-sm font-medium text-slate-700">
+                <label className="text-sm font-medium text-slate-700">
               Work arrangement
               <select
                 value={arrangement}
@@ -201,61 +312,72 @@ export default function MaidDirectory() {
             </label>
           </div>
 
-          <fieldset className="mt-5">
-            <legend className="mb-2 text-sm font-medium text-slate-700">Skills</legend>
-            <div className="flex flex-wrap gap-2">
-              {skills.map((skill) => {
-                const selected = selectedSkills.includes(skill);
+              <fieldset className="mt-5">
+                <legend className="mb-2 text-sm font-medium text-slate-700">
+                  Skills for {service.label.toLowerCase()}
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {skills.map((skill) => {
+                    const selected = selectedSkills.includes(skill);
 
-                return (
-                  <button
-                    key={skill}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => toggleSkill(skill)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                      selected
-                        ? "border-amber-500 bg-amber-50 font-medium text-amber-900"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-amber-300"
-                    }`}
-                  >
-                    {skill}
-                  </button>
-                );
-              })}
+                    return (
+                      <button
+                        key={skill}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => toggleSkill(skill)}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                          selected
+                            ? "border-amber-500 bg-amber-50 font-medium text-amber-900"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-amber-300"
+                        }`}
+                      >
+                        {skill}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+              <button
+                type="button"
+                aria-pressed={showSavedOnly}
+                onClick={() => setShowSavedOnly((current) => !current)}
+                className={`mt-5 inline-flex min-h-10 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  showSavedOnly
+                    ? "border-rose-300 bg-rose-50 text-rose-800"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:text-rose-700"
+                }`}
+              >
+                <span aria-hidden="true">♡</span>
+                Saved profiles <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs">{savedProfileIds.length}</span>
+              </button>
+              <p className="mt-2 text-xs text-slate-500">
+                Saved profiles are kept for this browser session only.
+              </p>
             </div>
-          </fieldset>
-          <button
-            type="button"
-            aria-pressed={showSavedOnly}
-            onClick={() => setShowSavedOnly((current) => !current)}
-            className={`mt-5 inline-flex min-h-10 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-              showSavedOnly
-                ? "border-rose-300 bg-rose-50 text-rose-800"
-                : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:text-rose-700"
-            }`}
-          >
-            <span aria-hidden="true">♡</span>
-            Saved profiles <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs">{savedProfileIds.length}</span>
-          </button>
-          <p className="mt-2 text-xs text-slate-500">
-            Saved profiles are kept for this browser session only.
-          </p>
+          )}
         </section>
 
         <section aria-labelledby="results-heading" className="mt-8">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 id="results-heading" className="text-xl font-semibold">
-                Household professionals
+                {serviceId === "all" ? "Household professionals" : service.label}
               </h2>
               <p className="mt-1 text-sm text-slate-500" aria-live="polite">
                 {filteredProfiles.length} sample{" "}
                 {filteredProfiles.length === 1 ? "profile" : "profiles"}
+                {serviceId !== "all" ? ` for ${service.label.toLowerCase()}` : ""}
               </p>
+              {activeFilters.length > 0 && (
+                <p className="mt-2 text-sm text-amber-900">
+                  <span className="font-semibold">Filters applied:</span>{" "}
+                  {activeFilters.join(" · ")}
+                </p>
+              )}
             </div>
             <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-              {hasFilters && (
+              {activeFilterCount > 0 && (
                 <button
                   type="button"
                   onClick={clearFilters}
@@ -268,14 +390,22 @@ export default function MaidDirectory() {
                 Sort
                 <select
                   value={sortOrder}
-                  onChange={(event) =>
-                    setSortOrder(
-                      event.target.value as "recommended" | "salary-low" | "salary-high",
-                    )
-                  }
+                  onChange={(event) => {
+                    const selectedSort = sortOptions.find(
+                      (option) => option === event.target.value,
+                    );
+                    if (selectedSort) {
+                      setSortOrder(selectedSort);
+                    }
+                  }}
                   className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 sm:flex-none"
                 >
                   <option value="recommended">Recommended</option>
+                  <option value="location">Location: state and area</option>
+                  <option value="experience">Experience: most first</option>
+                  <option value="gender">Gender: A to Z</option>
+                  <option value="availability">Availability: soonest</option>
+                  <option value="arrangement">Work arrangement</option>
                   <option value="salary-low">Salary: low to high</option>
                   <option value="salary-high">Salary: high to low</option>
                 </select>
@@ -307,7 +437,7 @@ export default function MaidDirectory() {
                             </Link>
                           </h3>
                           <p className="mt-0.5 text-sm text-slate-500">
-                            {profile.area}, {profile.state} · {profile.experience}
+                            {profile.area}, {profile.state} · {profile.gender} · {profile.experience}
                           </p>
                         </div>
                       </div>
@@ -382,12 +512,16 @@ export default function MaidDirectory() {
               <p className="text-lg font-semibold text-slate-800">
                 {showSavedOnly && savedProfileIds.length === 0
                   ? "You haven’t saved any profiles yet"
-                  : "No profiles match those filters"}
+                  : serviceId !== "all"
+                    ? `No sample profiles for ${service.label.toLowerCase()} yet`
+                    : "No profiles match those filters"}
               </p>
               <p className="mt-2 text-sm text-slate-500">
                 {showSavedOnly && savedProfileIds.length === 0
                   ? "Save a professional’s profile to find it here during this session."
-                  : "Try another location or remove a skill to see more sample profiles."}
+                  : serviceId !== "all"
+                    ? "This category is ready for matching listings when the endpoint is connected. We’ll only show profiles with skills for this kind of work."
+                    : "Try another location or remove a skill to see more sample profiles."}
               </p>
               <button
                 type="button"

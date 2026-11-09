@@ -9,19 +9,19 @@ export const metadata: Metadata = {
 const roles = [
   {
     href: "/onboarding/client",
-    eyebrow: "I’m hiring",
+    eyebrow: "CLIENT ACCOUNT · I’M HIRING",
     title: "I need household help",
     description:
       "Share the kind of help you need, your Lagos or Oyo location, and the work arrangement that suits your household.",
-    action: "Continue as an employer",
+    action: "Continue as a Client",
   },
   {
     href: "/onboarding/provider",
-    eyebrow: "I’m looking for work",
+    eyebrow: "PROVIDER ACCOUNT · I’M LOOKING FOR WORK",
     title: "I’m a household professional",
     description:
       "Create a work profile with your skills, qualifications, preferred location, and availability.",
-    action: "Continue as a professional",
+    action: "Continue as a Provider",
   },
 ];
 
@@ -37,16 +37,17 @@ export default function OnboardingPage() {
             Get started
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            A safer home-work connection starts here.
+            First, choose your account type.
           </h1>
           <p className="mt-4 leading-relaxed text-slate-600">
-            Choose the path that fits you. We’ll ask only for the information needed to
-            preview your profile.
+            Are you a client hiring household help, or a provider looking for work? Choose
+            the matching account type to continue.
           </p>
         </div>
 
         <aside className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
-          <strong>Prototype, not account registration.</strong> Use fictional details only.
+          <strong>Prototype, not account registration or sign-in.</strong> Use fictional
+          details only.
           This preview does not send your information to a server, save it to your device,
           verify identity, or create an account. Refreshing or closing this tab clears your
           profile preview.

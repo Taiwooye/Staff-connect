@@ -1,15 +1,5 @@
 import Link from "next/link";
-
-const categories = [
-  { icon: "👶", label: "Nanny & childcare", description: "Thoughtful care for little ones" },
-  { icon: "🧹", label: "Home cleaning", description: "A fresh, comfortable home" },
-  { icon: "🍳", label: "Cooks & chefs", description: "Everyday meals, made easier" },
-  { icon: "🚗", label: "Drivers", description: "Reliable help on the road" },
-  { icon: "🌿", label: "Gardeners", description: "Care for your outdoor spaces" },
-  { icon: "🧓", label: "Elderly care", description: "Dependable day-to-day support" },
-  { icon: "🐕", label: "Pet care", description: "Kind care for furry family" },
-  { icon: "🔧", label: "Home maintenance", description: "A hand with the little fixes" },
-];
+import { serviceCategories } from "./maids/services";
 
 const steps = [
   {
@@ -39,11 +29,11 @@ export default function HomePage() {
   return (
     <>
       <main>
-        <section className="relative isolate overflow-hidden bg-[#fbf8f2] px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
-          <div aria-hidden="true" className="absolute -right-32 -top-32 -z-10 h-[34rem] w-[34rem] rounded-full bg-amber-200/30 blur-3xl" />
-          <div aria-hidden="true" className="absolute -bottom-48 left-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-orange-100/70 blur-3xl" />
+        <section className="home-motion relative isolate overflow-hidden bg-[#fbf8f2] px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
+          <div aria-hidden="true" className="home-glow home-glow--amber absolute -right-32 -top-32 -z-10 h-[34rem] w-[34rem] rounded-full bg-amber-200/30 blur-3xl" />
+          <div aria-hidden="true" className="home-glow home-glow--orange absolute -bottom-48 left-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-orange-100/70 blur-3xl" />
           <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="max-w-2xl">
+            <div className="home-intro max-w-2xl">
               <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-amber-800 shadow-sm">
                 <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-500" />
                 Trusted help for a happier home
@@ -80,7 +70,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[550px]">
+            <div className="home-showcase relative mx-auto w-full max-w-[550px]">
               <div aria-hidden="true" className="absolute inset-8 rotate-[-5deg] rounded-[2.5rem] bg-amber-300/50" />
               <div className="relative rounded-[2rem] border border-white bg-white p-5 shadow-[0_30px_90px_-35px_rgba(27,39,54,0.35)] sm:p-7">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-5">
@@ -136,10 +126,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-100 bg-white px-5 py-8 sm:px-8">
+        <section className="home-motion border-y border-slate-100 bg-white px-5 py-8 sm:px-8">
           <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-3 sm:gap-8">
-            {assurances.map((item) => (
-              <div key={item.title} className="flex items-start gap-3">
+            {assurances.map((item, index) => (
+              <div
+                key={item.title}
+                className="home-assurance flex items-start gap-3"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-lg font-bold text-amber-700" aria-hidden="true">{item.icon}</span>
                 <div>
                   <p className="font-bold text-[#172638]">{item.title}</p>
@@ -150,7 +144,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="categories" className="scroll-mt-28 bg-white px-5 py-20 sm:px-8 sm:py-24">
+        <section id="categories" className="home-motion scroll-mt-28 bg-white px-5 py-20 sm:px-8 sm:py-24">
           <div className="mx-auto max-w-7xl">
             <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
               <div>
@@ -163,11 +157,12 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {categories.map((category) => (
+              {serviceCategories.map((category, index) => (
                 <Link
                   key={category.label}
-                  href="/maids"
-                  className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-[#fffdf8] hover:shadow-lg hover:shadow-amber-900/5"
+                  href={`/maids?service=${category.id}`}
+                  className="home-category-card group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-[#fffdf8] hover:shadow-lg hover:shadow-amber-900/5"
+                  style={{ animationDelay: `${Math.min(index, 5) * 70}ms` }}
                 >
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f7f8f6] text-2xl transition group-hover:bg-amber-100" aria-hidden="true">
                     {category.icon}
@@ -182,7 +177,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="how-it-works" className="scroll-mt-28 bg-[#f6f7f5] px-5 py-20 sm:px-8 sm:py-24">
+        <section id="how-it-works" className="home-motion scroll-mt-28 bg-[#f6f7f5] px-5 py-20 sm:px-8 sm:py-24">
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Simple from the start</p>
@@ -190,8 +185,12 @@ export default function HomePage() {
               <p className="mt-4 leading-7 text-slate-500">Take it one step at a time. You decide who to contact and when you’re ready.</p>
             </div>
             <div className="grid gap-5 md:grid-cols-3">
-              {steps.map((step) => (
-                <div key={step.num} className="rounded-2xl border border-slate-100 bg-white p-7 shadow-sm sm:p-8">
+              {steps.map((step, index) => (
+                <div
+                  key={step.num}
+                  className="home-step-card rounded-2xl border border-slate-100 bg-white p-7 shadow-sm sm:p-8"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-sm font-extrabold tracking-wide text-amber-800">{step.num}</span>
                   <h3 className="mt-6 text-lg font-bold text-[#172638]">{step.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-500">{step.desc}</p>

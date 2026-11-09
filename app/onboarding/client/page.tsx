@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import OnboardingFlow from "../onboarding-flow";
 
 export const metadata: Metadata = {
-  title: "Employer onboarding",
+  title: "Client onboarding",
   description: "Preview a household profile for a StaffConnect search in Lagos or Oyo.",
 };
 

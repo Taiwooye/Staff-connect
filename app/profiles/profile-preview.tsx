@@ -2,20 +2,32 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useProfileDraft } from "../onboarding/profile-draft-context";
 
 type Role = "client" | "provider";
 
 export default function ProfilePreview({ role }: { role: Role }) {
-  const { householdProfile, providerProfile } = useProfileDraft();
+  const router = useRouter();
+  const {
+    householdProfile,
+    providerProfile,
+    providerProfileSaved,
+    markProviderProfileSaved,
+  } = useProfileDraft();
   const profile = role === "client" ? householdProfile : providerProfile;
+
+  function saveProviderDraftAndExplore() {
+    markProviderProfileSaved();
+    router.push("/maids");
+  }
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-slate-900">
       <main className="mx-auto max-w-4xl px-4 py-7 sm:px-6 sm:py-14">
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
           <strong>Private preview only.</strong> This profile exists only in this tab’s
-          temporary memory. It has not been saved, published, verified, or sent anywhere.
+          temporary memory. It has not been published, verified, or sent anywhere.
           Refreshing the page clears it.
         </div>
 
@@ -42,7 +54,7 @@ export default function ProfilePreview({ role }: { role: Role }) {
               <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
                 Household in {householdProfile.area}, {householdProfile.state}
               </h1>
-              <p className="mt-2 text-sm text-slate-300">Employer profile preview</p>
+              <p className="mt-2 text-sm text-slate-300">Client account profile preview</p>
             </div>
             <div className="grid gap-7 p-6 sm:grid-cols-[1.4fr_1fr] sm:p-8">
               <section>
@@ -122,14 +134,14 @@ export default function ProfilePreview({ role }: { role: Role }) {
                 </h1>
               </div>
               <p className="mt-2 text-sm text-slate-300">
-                {providerProfile.area}, {providerProfile.state} · Work profile preview
+                {providerProfile.area}, {providerProfile.state} · Provider account preview
               </p>
             </div>
             <div className="grid gap-7 p-6 sm:grid-cols-[1.4fr_1fr] sm:p-8">
               <section>
                 <h2 className="text-lg font-semibold">About</h2>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                  {providerProfile.bio || "No introduction added."}
+                  {providerProfile.bio}
                 </p>
                 {providerProfile.galleryImages.length > 0 && (
                   <section aria-labelledby="gallery-heading">
@@ -175,7 +187,7 @@ export default function ProfilePreview({ role }: { role: Role }) {
                 )}
                 <h2 className="mt-7 text-lg font-semibold">Languages</h2>
                 <p className="mt-2 text-sm text-slate-600">
-                  {providerProfile.languages.join(", ") || "Not added"}
+                  {providerProfile.languages.join(", ")}
                 </p>
                 <h2 className="mt-7 text-lg font-semibold">Interests</h2>
                 <p className="mt-2 text-sm text-slate-600">
@@ -220,6 +232,30 @@ export default function ProfilePreview({ role }: { role: Role }) {
             </div>
           </article>
         ) : null}
+        {role === "provider" && providerProfile && (
+          <section
+            aria-labelledby="save-profile-heading"
+            className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6"
+          >
+            <div>
+              <h2 id="save-profile-heading" className="font-semibold text-slate-900">
+                Ready to explore StaffConnect?
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                Save this draft for the current tab and browse sample household listings.
+                It won’t be published or kept after you leave this session.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={saveProviderDraftAndExplore}
+              disabled={providerProfileSaved}
+              className="mt-4 inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:cursor-default disabled:bg-emerald-700 sm:mt-0 sm:w-auto"
+            >
+              {providerProfileSaved ? "Draft saved" : "Save draft & explore profiles"}
+            </button>
+          </section>
+        )}
       </main>
     </div>
   );

@@ -4,6 +4,90 @@
   --font-geist: "Geist", ui-sans-serif, system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 body {
   font-family: var(--font-geist);
+}
+
+.home-glow {
+  animation: home-glow-drift 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.home-glow--orange {
+  animation-delay: -7s;
+  animation-duration: 18s;
+}
+
+.home-intro,
+.home-showcase,
+.home-assurance,
+.home-category-card,
+.home-step-card {
+  animation: home-fade-up 650ms cubic-bezier(0.2, 0.7, 0.25, 1) backwards;
+}
+
+.home-showcase {
+  animation-delay: 120ms;
+}
+
+.home-category-card {
+  animation-duration: 550ms;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+
+.home-step-card {
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+@keyframes home-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-glow-drift {
+  from {
+    transform: translate3d(-12px, 8px, 0) scale(0.96);
+  }
+
+  to {
+    transform: translate3d(14px, -10px, 0) scale(1.04);
+  }
+}
+
+@media (hover: hover) {
+  .home-category-card:hover,
+  .home-step-card:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .home-motion *,
+  .home-motion *::before,
+  .home-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

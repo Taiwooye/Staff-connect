@@ -219,6 +219,23 @@ export default function OnboardingFlow({ role }: { role: Role }) {
         setError("Choose at least one work arrangement.");
         return;
       }
+
+      if (!isClient) {
+        const languages = draft.languages
+          .split(",")
+          .map((language) => language.trim())
+          .filter(Boolean);
+
+        if (languages.length === 0) {
+          setError("Add at least one language to your profile.");
+          return;
+        }
+
+        if (!draft.bio.trim()) {
+          setError("Add a short introduction to your profile.");
+          return;
+        }
+      }
     }
 
     if (step < 2) {
@@ -284,14 +301,28 @@ export default function OnboardingFlow({ role }: { role: Role }) {
 
         <div className="mt-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">
-            {isClient ? "Employer" : "Household professional"} · Lagos and Oyo, Nigeria
+            {isClient
+              ? "Client account · Hiring household help"
+              : "Provider account · Looking for household work"}{" "}
+            · Lagos and Oyo, Nigeria
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
             {pageTitle}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-600">
-            Three short steps. Email and phone stay in this temporary form and are discarded
-            when you preview your profile.
+            You’re setting up as a {isClient ? "client" : "provider"}. Three short steps.
+            Email and phone stay in this temporary form and are discarded when you preview
+            your profile.
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Wrong account type?{" "}
+            <Link
+              href={isClient ? "/onboarding/provider" : "/onboarding/client"}
+              className="font-semibold text-amber-800 underline underline-offset-2"
+            >
+              Switch to {isClient ? "Provider" : "Client"}
+            </Link>
+            .
           </p>
         </div>
 
@@ -597,14 +628,18 @@ export default function OnboardingFlow({ role }: { role: Role }) {
                   />
                 </label>
                 <label className="text-sm font-medium text-slate-700">
-                  Languages (optional)
+                  Languages <span className="text-rose-600">*</span>
                   <input
+                    required
                     maxLength={120}
                     value={draft.languages}
                     onChange={(event) => updateDraft("languages", event.target.value)}
                     placeholder="e.g. English, Yoruba"
                     className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
                   />
+                  <span className="mt-1 block text-xs font-normal text-slate-500">
+                    Add at least one language. Separate multiple languages with commas.
+                  </span>
                 </label>
                 <label className="text-sm font-medium text-slate-700">
                   Interests (optional)
@@ -617,13 +652,14 @@ export default function OnboardingFlow({ role }: { role: Role }) {
                   />
                 </label>
                 <label className="text-sm font-medium text-slate-700 sm:col-span-2">
-                  Short introduction (optional)
+                  About you <span className="text-rose-600">*</span>
                   <textarea
+                    required
                     rows={3}
                     maxLength={300}
                     value={draft.bio}
                     onChange={(event) => updateDraft("bio", event.target.value)}
-                    placeholder="Describe your work experience. Avoid contact details and identity numbers."
+                    placeholder="Introduce yourself and describe the household work you do. Avoid contact details and identity numbers."
                     className="mt-2 w-full resize-y rounded-lg border border-slate-300 px-3 py-2 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
                   />
                   <span className="mt-1 block text-right text-xs font-normal text-slate-400">

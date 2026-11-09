@@ -9,7 +9,7 @@ const navigationLinks = [
   { href: "/#categories", label: "Services", detail: "Explore types of support" },
   { href: "/#how-it-works", label: "How it works", detail: "See how StaffConnect works" },
   { href: "/onboarding/provider", label: "For professionals", detail: "Create a staff profile" },
-  { href: "/onboarding/client", label: "Get started", detail: "Share what your household needs" },
+  { href: "/onboarding", label: "Sign up", detail: "Choose a Client or Provider account" },
 ];
 
 export default function SiteNavigation() {
