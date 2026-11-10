@@ -13,6 +13,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Authentication setup
 
+Until Supabase credentials are configured, `/signup` and `/signin` use a local demo flow. Use any valid email and password; email and password are not verified, and the password is never stored. Demo account type, session, profile details, and saved Client profiles stay in that browser only. Provider profile photos are resized before saving. Client match suggestions use fictional sample listings; profiles are not verified and do not have real ratings or reviews. This is for testing the UI only, not real authentication. The flow switches to Supabase automatically once the environment variables below are configured.
+
 1. Create a Supabase project.
 2. Copy `.env.example` to `.env.local` and set the project URL and publishable key.
 3. Run `supabase/migrations/20261109000000_auth_roles_and_saved_professionals.sql` in the Supabase SQL Editor.
@@ -21,9 +23,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Configure the same `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` values in Vercel. Never use a Supabase service-role key in the browser or commit credentials.
 
-Registration requires an email and a password of at least 10 characters. If email confirmation is enabled, users follow the email link before signing in. The account page shows their persistent Client or Provider role. Saved sample professionals are stored for signed-in Client accounts. Public sample listings remain visible without an account.
+With Supabase configured, registration requires an email and a password. If email confirmation is enabled, users follow the email link before signing in. The account page shows their Client or Provider role. Saved sample professionals are stored for signed-in Client accounts. Public sample listings remain visible without an account.
 
-Provider work-profile previews are temporary and are not published or persisted. Listings and qualifications are fictional and unverified.
+Provider onboarding previews are temporary. The `/account` profile editor saves details in the current browser only; profiles are not published or synced online. Listings and qualifications are fictional and unverified.
 
 ## Prototype features
 

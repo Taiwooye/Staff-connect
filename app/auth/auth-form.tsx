@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth, type AccountType } from "./auth-context";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
-import { isSupabaseConfigured } from "../../lib/supabase/config";
 
 type AuthMode = "signin" | "signup";
 
@@ -21,10 +20,14 @@ export default function AuthForm({
   callbackError: string;
 }) {
   const router = useRouter();
-  const { status: authStatus, accountType: signedInAccountType } = useAuth();
-  const configured = isSupabaseConfigured();
+  const {
+    status: authStatus,
+    accountType: signedInAccountType,
+    demoMode,
+    startDemoSession,
+  } = useAuth();
   const mode = initialMode;
-  const accountType = initialRole;
+  const [accountType, setAccountType] = useState<AccountType>(initialRole);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +46,13 @@ export default function AuthForm({
     try {
       const supabase = createSupabaseBrowserClient();
       if (!supabase) {
-        setError("Sign-in is unavailable because Supabase is not configured.");
+        startDemoSession(
+          email,
+          accountType,
+          mode === "signup" ? displayName : "",
+        );
+        router.replace(returnTo);
+        router.refresh();
         return;
       }
 
@@ -195,26 +204,16 @@ export default function AuthForm({
           </div>
         )}
 
-        {!configured && (
+        {demoMode && (
           <aside className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
-            <strong>We’re getting accounts ready.</strong>{" "}
-            {mode === "signup"
-              ? "Creating an account isn’t available just yet. You can still explore household profiles."
-              : "Signing in isn’t available just yet. You can still explore household profiles."}
-            <Link
-              href="/maids"
-              className="ml-1 font-semibold underline underline-offset-4"
-            >
-              Browse profiles
-            </Link>
+            <strong>Demo access is on.</strong> Use any email and password to
+            continue. Your account is saved only in this browser. Email and password are
+            not verified, and your password is never saved.
           </aside>
         )}
 
         <form onSubmit={submit} className="mt-6 space-y-4">
-          <fieldset
-            disabled={!configured || isSubmitting}
-            className="space-y-4 disabled:opacity-60"
-          >
+          <fieldset className="space-y-4">
             {mode === "signup" && (
               <label className="block text-sm font-semibold text-slate-800">
                 What should we call you?
@@ -228,6 +227,42 @@ export default function AuthForm({
                   className="mt-2 h-12 w-full rounded-xl border border-slate-300 px-4 font-normal outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
                 />
               </label>
+            )}
+
+            {mode === "signin" && demoMode && (
+              <fieldset>
+                <legend className="mb-2 text-sm font-semibold text-slate-800">
+                  I’m here as
+                </legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {([
+                    ["client", "I’m hiring"],
+                    ["provider", "I’m looking for work"],
+                  ] as const).map(([role, label]) => (
+                    <label
+                      key={role}
+                      className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
+                        accountType === role
+                          ? "border-amber-500 bg-amber-50 text-amber-950"
+                          : "border-slate-200 text-slate-700 hover:border-amber-300"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="signinAccountType"
+                        value={role}
+                        checked={accountType === role}
+                        onChange={() => setAccountType(role)}
+                        className="accent-amber-600"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500">
+                  This choice is used the first time this email signs in here.
+                </p>
+              </fieldset>
             )}
 
             <label className="block text-sm font-semibold text-slate-800">
@@ -250,10 +285,9 @@ export default function AuthForm({
                   type={showPassword ? "text" : "password"}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   required
-                  minLength={mode === "signup" ? 10 : undefined}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder={mode === "signup" ? "At least 10 characters" : "Your password"}
+                  placeholder="Your password"
                   className="h-full min-w-0 flex-1 rounded-xl bg-transparent px-4 font-normal outline-none placeholder:text-slate-400"
                 />
                 <button
@@ -265,11 +299,6 @@ export default function AuthForm({
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </span>
-              {mode === "signup" && (
-                <span className="mt-1.5 block text-xs font-normal text-slate-500">
-                  Use 10 characters or more.
-                </span>
-              )}
             </label>
           </fieldset>
 
@@ -286,7 +315,7 @@ export default function AuthForm({
 
           <button
             type="submit"
-            disabled={!configured || isSubmitting}
+            disabled={isSubmitting}
             className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#142236] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#20334c] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting
