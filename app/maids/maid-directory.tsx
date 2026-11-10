@@ -171,7 +171,7 @@ export default function MaidDirectory({
       return;
     }
 
-    router.push("/auth?mode=signup&role=client&next=%2Fmaids");
+    router.push("/signup?role=client&next=%2Fmaids");
   }
 
   async function saveProfile(profileId: string) {
@@ -191,7 +191,7 @@ export default function MaidDirectory({
       }
 
       router.push(
-        `/auth?mode=signup&role=client&next=${encodeURIComponent(`/maids/${profileId}`)}`,
+        `/signup?role=client&next=${encodeURIComponent(`/maids/${profileId}`)}`,
       );
       return;
     }

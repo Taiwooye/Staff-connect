@@ -31,7 +31,7 @@ Provider work-profile previews are temporary and are not published or persisted.
 - Learn about the prototype at `/about` and find next steps for households and professionals at `/contact`. Contact options are not connected to a live support inbox yet.
 - Sort directory results by location, experience, gender, availability, work arrangement, or salary, and review the active filters beside the result count.
 - Open a profile at `/maids/[id]` to review experience, qualifications, languages, interests, and work preferences. Profile details are public; sign-in is required to save a profile.
-- Create an account as a Client or Provider at `/auth`. Account type is displayed in the navigation and `/account`.
+- Create an account as a Client or Provider at `/signup`, or sign in at `/signin`. Account type is displayed in the navigation and `/account`.
 - Provider onboarding previews support one profile photo and up to two gallery images, but drafts are not published or persisted.
 
 All directory profiles are fictional sample data. Qualifications are illustrative and unverified. Provider profile previews, selected images, and onboarding form data exist only in browser memory; this prototype does not publish listings or upload or persist provider profile data. Image selection accepts JPEG, PNG, or WebP up to 5 MB per image. Do not enter real personal or sensitive information.

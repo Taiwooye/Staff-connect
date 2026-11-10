@@ -12,7 +12,7 @@ const navigationLinks = [
   { href: "/about", label: "About us", detail: "Learn what StaffConnect is building" },
   { href: "/contact", label: "Contact us", detail: "Find the right way to get started" },
   {
-    href: "/auth?mode=signup&role=provider&next=%2Faccount",
+    href: "/signup?role=provider&next=%2Faccount",
     label: "For professionals",
     detail: "Create a Provider account",
   },
@@ -40,12 +40,12 @@ export default function SiteNavigation() {
         ]
       : [
           {
-            href: "/auth?mode=signin&next=%2Faccount",
+            href: "/signin?next=%2Faccount",
             label: "Sign in",
             detail: "Continue to your StaffConnect account",
           },
           {
-            href: "/auth?mode=signup&role=client&next=%2Faccount",
+            href: "/signup",
             label: "Create an account",
             detail: "Choose a Client or Provider account",
           },
@@ -96,24 +96,7 @@ export default function SiteNavigation() {
             </span>
           </button>
 
-          {status === "signed-in" && accountType ? (
-            <Link
-              href="/account"
-              aria-label={`My account, signed in as a ${accountLabel}`}
-              className="ml-auto shrink-0 rounded-full border border-white/25 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-white/10 sm:px-3"
-            >
-              {accountLabel}
-            </Link>
-          ) : status === "signed-out" || status === "unconfigured" ? (
-            <Link
-              href="/auth?mode=signin&next=%2Faccount"
-              className="ml-auto shrink-0 rounded-full px-2 py-2 text-xs font-semibold text-white underline underline-offset-4 hover:text-amber-200 sm:px-3 sm:text-sm"
-            >
-              Sign in
-            </Link>
-          ) : null}
-
-          <nav aria-label="Main navigation" className="hidden items-center gap-8 md:flex">
+          <nav aria-label="Main navigation" className="hidden items-center gap-6 lg:flex">
             <Link href="/#how-it-works" className="text-sm font-medium text-slate-200 transition hover:text-white">
               How it works
             </Link>
@@ -124,7 +107,7 @@ export default function SiteNavigation() {
               href={
                 status === "signed-in" && accountType === "provider"
                   ? "/onboarding/provider"
-                  : "/auth?mode=signup&role=provider&next=%2Faccount"
+                  : "/signup?role=provider&next=%2Faccount"
               }
               className="text-sm font-medium text-slate-200 transition hover:text-white"
             >
@@ -132,9 +115,36 @@ export default function SiteNavigation() {
             </Link>
           </nav>
 
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-0">
+            {status === "signed-in" && accountType ? (
+              <Link
+                href="/account"
+                aria-label={`My account, signed in as a ${accountLabel}`}
+                className="rounded-full border border-white/25 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-white/10 sm:px-3 sm:text-sm"
+              >
+                {accountLabel}
+              </Link>
+            ) : status === "signed-out" || status === "unconfigured" ? (
+              <>
+                <Link
+                  href="/signin?next=%2Faccount"
+                  className="inline-flex min-h-9 items-center justify-center rounded-full border border-white/35 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-white/10 sm:min-h-10 sm:px-4 sm:text-sm"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex min-h-9 items-center justify-center rounded-full bg-amber-400 px-2.5 py-2 text-xs font-bold text-[#142236] shadow-md shadow-amber-950/20 transition hover:bg-amber-300 sm:min-h-10 sm:px-4 sm:text-sm"
+                >
+                  Sign up
+                </Link>
+              </>
+            ) : null}
+          </div>
+
           <Link
             href="/maids"
-            className="shrink-0 rounded-full bg-amber-400 px-3 py-2 text-xs font-bold text-[#142236] shadow-md shadow-amber-950/20 transition hover:bg-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200 sm:px-5 sm:py-2.5 sm:text-sm"
+            className="hidden shrink-0 rounded-full bg-amber-400 px-3 py-2 text-xs font-bold text-[#142236] shadow-md shadow-amber-950/20 transition hover:bg-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200 md:inline-flex sm:px-5 sm:py-2.5 sm:text-sm"
           >
             <span className="sm:hidden">Find help</span>
             <span className="hidden sm:inline">Find household help</span>

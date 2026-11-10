@@ -24,10 +24,11 @@ export default function AuthForm({
   const { status: authStatus, accountType: signedInAccountType } = useAuth();
   const configured = isSupabaseConfigured();
   const mode = initialMode;
-  const [accountType, setAccountType] = useState<AccountType>(initialRole);
+  const accountType = initialRole;
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(callbackError);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,11 +95,15 @@ export default function AuthForm({
     }
   }
 
-  const switchModeHref = `/auth?mode=${mode === "signup" ? "signin" : "signup"}&next=${encodeURIComponent(returnTo)}`;
+  const switchModeHref =
+    mode === "signup"
+      ? `/signin?next=${encodeURIComponent(returnTo)}`
+      : `/signup?next=${encodeURIComponent(returnTo)}`;
+  const rolePickerHref = `/signup?next=${encodeURIComponent(returnTo)}`;
 
   if (authStatus === "loading") {
     return (
-      <main className="min-h-screen bg-[#faf9f6] px-4 py-10 sm:px-6 sm:py-16">
+      <main className="min-h-[70vh] bg-[#faf9f6] px-4 py-16">
         <div className="mx-auto max-w-xl rounded-[2rem] border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">
           Checking your account...
         </div>
@@ -113,10 +118,10 @@ export default function AuthForm({
         : "Provider"
       : null;
     return (
-      <main className="min-h-screen bg-[#faf9f6] px-4 py-10 sm:px-6 sm:py-16">
-        <section className="mx-auto max-w-xl rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-9">
+      <main className="min-h-[70vh] bg-[#faf9f6] px-4 py-10 sm:px-6 sm:py-16">
+        <section className="mx-auto max-w-lg rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-9">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-amber-800">
-            StaffConnect account
+            Your StaffConnect account
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#142236]">
             {accountLabel
@@ -148,155 +153,160 @@ export default function AuthForm({
   }
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] px-4 py-10 sm:px-6 sm:py-16">
-      <div className="mx-auto max-w-xl">
-        <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900">
-          ← StaffConnect home
-        </Link>
-
-        <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-9">
+    <main className="min-h-[70vh] bg-[#faf9f6] px-4 py-8 sm:px-6 sm:py-12">
+      <section className="mx-auto max-w-lg rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-9">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-xl font-extrabold text-[#142236]">
+          S
+        </div>
+        <div className="mt-5 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-amber-800">
-            StaffConnect account
+            {mode === "signup" ? "Join StaffConnect" : "Your StaffConnect account"}
           </p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#142236]">
-            {mode === "signup" ? "Create your account" : "Welcome back"}
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#142236]">
+            {mode === "signup"
+              ? `Create your ${accountType === "client" ? "Client" : "Provider"} account`
+              : "Welcome back"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             {mode === "signup"
-              ? "Choose how you’ll use StaffConnect. Your account type stays attached to your account."
-              : "Sign in to continue to the page you were viewing."}
+              ? "A few details and you’ll be ready to get started."
+              : "Sign in to pick up where you left off."}
           </p>
+        </div>
 
-          {!configured ? (
-            <aside className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
-              <strong>Authentication setup is required.</strong> Add the Supabase
-              project URL and publishable key to <code>.env.local</code>, then apply
-              the migration in <code>supabase/migrations</code>. See the setup steps
-              in the README.
-            </aside>
-          ) : (
-            <form onSubmit={submit} className="mt-6 space-y-5">
-              {mode === "signup" && (
-                <>
-                  <fieldset>
-                    <legend className="mb-3 text-sm font-semibold text-slate-800">
-                      I want to use StaffConnect as:
-                    </legend>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {([
-                        ["client", "Client", "I’m hiring household help"],
-                        ["provider", "Provider", "I’m looking for work"],
-                      ] as const).map(([role, label, description]) => (
-                        <label
-                          key={role}
-                          className={`cursor-pointer rounded-2xl border p-4 transition ${
-                            accountType === role
-                              ? "border-amber-500 bg-amber-50 ring-2 ring-amber-100"
-                              : "border-slate-200 hover:border-amber-300"
-                          }`}
-                        >
-                          <span className="flex items-start gap-3">
-                            <input
-                              type="radio"
-                              name="accountType"
-                              value={role}
-                              checked={accountType === role}
-                              onChange={() => setAccountType(role)}
-                              className="mt-1 accent-amber-600"
-                            />
-                            <span>
-                              <span className="block font-semibold text-slate-900">
-                                {label}
-                              </span>
-                              <span className="mt-1 block text-sm text-slate-600">
-                                {description}
-                              </span>
-                            </span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
-                  <label className="block text-sm font-medium text-slate-700">
-                    Your name
-                    <input
-                      autoComplete="name"
-                      required
-                      maxLength={80}
-                      value={displayName}
-                      onChange={(event) => setDisplayName(event.target.value)}
-                      className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
-                    />
-                  </label>
-                </>
-              )}
+        {mode === "signup" && (
+          <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                You’re joining as a
+              </p>
+              <p className="mt-0.5 font-semibold text-[#142236]">
+                {accountType === "client"
+                  ? "Client · I need help at home"
+                  : "Provider · I’m looking for work"}
+              </p>
+            </div>
+            <Link
+              href={rolePickerHref}
+              className="shrink-0 text-sm font-semibold text-amber-900 underline underline-offset-4 hover:text-amber-700"
+            >
+              Change
+            </Link>
+          </div>
+        )}
 
-              <label className="block text-sm font-medium text-slate-700">
-                Email address
+        {!configured && (
+          <aside className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+            <strong>We’re getting accounts ready.</strong>{" "}
+            {mode === "signup"
+              ? "Creating an account isn’t available just yet. You can still explore household profiles."
+              : "Signing in isn’t available just yet. You can still explore household profiles."}
+            <Link
+              href="/maids"
+              className="ml-1 font-semibold underline underline-offset-4"
+            >
+              Browse profiles
+            </Link>
+          </aside>
+        )}
+
+        <form onSubmit={submit} className="mt-6 space-y-4">
+          <fieldset
+            disabled={!configured || isSubmitting}
+            className="space-y-4 disabled:opacity-60"
+          >
+            {mode === "signup" && (
+              <label className="block text-sm font-semibold text-slate-800">
+                What should we call you?
                 <input
-                  type="email"
-                  autoComplete="email"
+                  autoComplete="name"
                   required
-                  maxLength={254}
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  maxLength={80}
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder="Your name"
+                  className="mt-2 h-12 w-full rounded-xl border border-slate-300 px-4 font-normal outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
-                Password
+            )}
+
+            <label className="block text-sm font-semibold text-slate-800">
+              Email address
+              <input
+                type="email"
+                autoComplete="email"
+                required
+                maxLength={254}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                className="mt-2 h-12 w-full rounded-xl border border-slate-300 px-4 font-normal outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-slate-800">
+              Password
+              <span className="mt-2 flex h-12 items-center rounded-xl border border-slate-300 pr-3 transition focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-100">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   required
-                  minLength={10}
+                  minLength={mode === "signup" ? 10 : undefined}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 font-normal outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  placeholder={mode === "signup" ? "At least 10 characters" : "Your password"}
+                  className="h-full min-w-0 flex-1 rounded-xl bg-transparent px-4 font-normal outline-none placeholder:text-slate-400"
                 />
-                {mode === "signup" && (
-                  <span className="mt-1 block text-xs font-normal text-slate-500">
-                    Use at least 10 characters.
-                  </span>
-                )}
-              </label>
-
-              {error && (
-                <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">
-                  {error}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="shrink-0 rounded px-1 text-xs font-semibold text-slate-600 hover:text-[#142236] focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </span>
+              {mode === "signup" && (
+                <span className="mt-1.5 block text-xs font-normal text-slate-500">
+                  Use 10 characters or more.
+                </span>
               )}
-              {message && (
-                <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
-                  {message}
-                </p>
-              )}
+            </label>
+          </fieldset>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#142236] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#20334c] disabled:cursor-wait disabled:opacity-60"
-              >
-                {isSubmitting
-                  ? "Please wait..."
-                  : mode === "signup"
-                    ? `Create ${accountType === "client" ? "Client" : "Provider"} account`
-                    : "Sign in"}
-              </button>
-            </form>
+          {error && (
+            <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">
+              {error}
+            </p>
+          )}
+          {message && (
+            <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
+              {message}
+            </p>
           )}
 
-          <p className="mt-6 text-center text-sm text-slate-600">
-            {mode === "signup" ? "Already have an account?" : "New to StaffConnect?"}{" "}
-            <Link
-              href={switchModeHref}
-              className="font-semibold text-amber-800 underline underline-offset-4"
-            >
-              {mode === "signup" ? "Sign in" : "Choose an account type and sign up"}
-            </Link>
-          </p>
-        </section>
-      </div>
+          <button
+            type="submit"
+            disabled={!configured || isSubmitting}
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#142236] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#20334c] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting
+              ? "Please wait..."
+              : mode === "signup"
+                ? "Create my account"
+                : "Sign in"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-600">
+          {mode === "signup" ? "Already have an account?" : "New to StaffConnect?"}{" "}
+          <Link
+            href={switchModeHref}
+            className="font-semibold text-amber-800 underline underline-offset-4 hover:text-amber-700"
+          >
+            {mode === "signup" ? "Sign in" : "Create an account"}
+          </Link>
+        </p>
+      </section>
     </main>
   );
 }

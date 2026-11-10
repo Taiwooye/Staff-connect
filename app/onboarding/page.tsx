@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 const roles = [
   {
-    href: "/auth?mode=signup&role=client&next=%2Faccount",
+    href: "/signup?role=client&next=%2Faccount",
     eyebrow: "CLIENT ACCOUNT · I’M HIRING",
     title: "I need household help",
     description:
@@ -16,7 +16,7 @@ const roles = [
     action: "Create a Client account",
   },
   {
-    href: "/auth?mode=signup&role=provider&next=%2Faccount",
+    href: "/signup?role=provider&next=%2Faccount",
     eyebrow: "PROVIDER ACCOUNT · I’M LOOKING FOR WORK",
     title: "I’m a household professional",
     description:

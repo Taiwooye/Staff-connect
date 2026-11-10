@@ -24,7 +24,7 @@ const contactPaths = [
     description:
       "Create a Provider account first, then explore the temporary work-profile preview.",
     action: "Create a Provider account",
-    href: "/auth?mode=signup&role=provider&next=%2Faccount",
+    href: "/signup?role=provider&next=%2Faccount",
     icon: "✳",
     style: "bg-emerald-50 text-emerald-900",
   },

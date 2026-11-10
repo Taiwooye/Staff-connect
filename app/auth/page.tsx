@@ -1,41 +1,26 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import AuthForm from "./auth-form";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Sign in or create an account",
-  description: "Choose your StaffConnect account type and sign in securely.",
+  title: "StaffConnect account",
+  description: "Continue to your StaffConnect account.",
 };
 
-function getLocalReturnPath(value: string | string[] | undefined) {
-  if (
-    typeof value === "string" &&
-    value.startsWith("/") &&
-    !value.startsWith("//") &&
-    !value.startsWith("/auth")
-  ) {
-    return value;
+async function RedirectAuthPage({
+  searchParams,
+}: Pick<PageProps<"/auth">, "searchParams">): Promise<never> {
+  const params = await searchParams;
+  const mode = params.mode === "signin" ? "signin" : "signup";
+  const destination = mode === "signin" ? "/signin" : "/signup";
+  const search = new URLSearchParams();
+
+  for (const key of ["next", "role", "error"] as const) {
+    const value = params[key];
+    if (typeof value === "string") search.set(key, value);
   }
 
-  return "/account";
-}
-
-async function AuthPageContent({
-  searchParams,
-}: Pick<PageProps<"/auth">, "searchParams">) {
-  const params = await searchParams;
-  const mode = params.mode === "signup" ? "signup" : "signin";
-  const role =
-    params.role === "provider" || params.role === "client" ? params.role : "client";
-
-  return (
-    <AuthForm
-      mode={mode}
-      initialRole={role}
-      returnTo={getLocalReturnPath(params.next)}
-      callbackError={typeof params.error === "string" ? params.error : ""}
-    />
-  );
+  redirect(`${destination}${search.size ? `?${search.toString()}` : ""}`);
 }
 
 export default function AuthPage({
@@ -44,14 +29,14 @@ export default function AuthPage({
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-[#faf9f6] px-4 py-10 sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-xl rounded-[2rem] border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">
-            Loading account options...
+        <main className="min-h-[70vh] bg-[#faf9f6] px-4 py-16">
+          <div className="mx-auto max-w-xl rounded-[2rem] bg-white p-8 text-sm text-slate-600 shadow-sm">
+            Taking you to your account page...
           </div>
         </main>
       }
     >
-      <AuthPageContent searchParams={searchParams} />
+      <RedirectAuthPage searchParams={searchParams} />
     </Suspense>
   );
 }

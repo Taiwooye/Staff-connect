@@ -28,7 +28,7 @@ export default function SaveProfileButton({
 
     if (status !== "signed-in") {
       router.push(
-        `/auth?mode=signup&role=client&next=${encodeURIComponent(pathname)}`,
+        `/signup?role=client&next=${encodeURIComponent(pathname)}`,
       );
       return;
     }
@@ -75,9 +75,9 @@ export default function SaveProfileButton({
       </button>
       {status !== "signed-in" && status !== "loading" && (
         <p className="mt-2 text-sm text-slate-600">
-          You’ll be asked to create a Client or Provider account before saving.
+          Sign in or create a Client account to save this profile.
           <Link
-            href={`/auth?mode=signin&next=${encodeURIComponent(pathname)}`}
+            href={`/signin?next=${encodeURIComponent(pathname)}`}
             className="ml-1 font-semibold text-amber-800 underline underline-offset-4"
           >
             Sign in

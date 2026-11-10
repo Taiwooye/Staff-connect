@@ -61,8 +61,14 @@ export default function AccountDashboard() {
           </p>
           {status === "unconfigured" && (
             <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-950">
-              Supabase authentication is not configured yet. Add the environment
-              variables and run the database migration described in the README.
+              Account sign-in is being set up. You can still browse household
+              professionals while we get things ready.{" "}
+              <Link
+                href="/maids"
+                className="font-semibold underline underline-offset-4"
+              >
+                Browse profiles
+              </Link>
             </p>
           )}
           {authError && (
@@ -80,7 +86,7 @@ export default function AccountDashboard() {
             </button>
           ) : (
             <Link
-              href="/auth?mode=signin&next=%2Faccount"
+              href="/signin?next=%2Faccount"
               className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#142236] px-5 py-3 text-sm font-semibold text-white hover:bg-[#20334c]"
             >
               Sign in
