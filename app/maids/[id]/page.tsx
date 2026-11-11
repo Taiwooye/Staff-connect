@@ -150,6 +150,12 @@ export default async function MaidProfilePage({
               </div>
             </dl>
             <Link
+              href={`/jobs?professional=${profile.id}`}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-[#142236] transition hover:bg-amber-400"
+            >
+              Post a job based on this profile
+            </Link>
+            <Link
               href="/maids"
               className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#142236] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#20334c]"
             >

@@ -8,9 +8,17 @@ import { useAuth, type AccountProfile } from "../auth/auth-context";
 
 type PayUnit = "hour" | "day" | "shift" | "month" | "project";
 type HiringCategory = "Household" | "Education" | "Events" | "Business" | "Other";
-type JobStatus = "open" | "filled";
-type OfferStatus = "pending" | "accepted" | "declined";
+type JobStatus = "open" | "reserved" | "filled";
+type OfferStatus = "pending" | "accepted" | "hired" | "declined";
 type PaymentStatus = "unpaid" | "paid" | "received";
+
+type ConversationMessage = {
+  id: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  createdAt: string;
+};
 
 type JobPost = {
   id: string;
@@ -43,10 +51,16 @@ type WorkerOffer = {
   providerSkills: string[];
   providerExperience: string;
   providerAvailability: string;
+  providerQualifications?: string;
+  providerLanguages?: string;
+  providerPreviousWork?: string;
+  providerExpectedSalary?: string;
+  providerArrangements?: string[];
   askingPrice: number;
   message: string;
   status: OfferStatus;
   paymentStatus: PaymentStatus;
+  messages?: ConversationMessage[];
   createdAt: string;
 };
 
@@ -154,6 +168,17 @@ const emptyJobForm = {
   payUnit: "shift" as PayUnit,
 };
 
+type InitialProfessional = {
+  id: string;
+  name: string;
+  skills: string[];
+  state: string;
+  area: string;
+  salaryMin: number;
+  salaryMax: number;
+  arrangement: string;
+};
+
 function isJobPost(value: unknown): value is JobPost {
   if (!value || typeof value !== "object") return false;
   const job = value as Partial<JobPost>;
@@ -175,7 +200,9 @@ function isJobPost(value: unknown): value is JobPost {
     typeof job.budgetMin === "number" &&
     typeof job.budgetMax === "number" &&
     payUnits.some((unit) => unit.value === job.payUnit) &&
-    (job.status === "open" || job.status === "filled") &&
+    (job.status === "open" ||
+      job.status === "reserved" ||
+      job.status === "filled") &&
     typeof job.createdAt === "string"
   );
 }
@@ -194,14 +221,39 @@ function isWorkerOffer(value: unknown): value is WorkerOffer {
     offer.providerSkills.every((skill) => typeof skill === "string") &&
     typeof offer.providerExperience === "string" &&
     typeof offer.providerAvailability === "string" &&
+    (offer.providerQualifications === undefined ||
+      typeof offer.providerQualifications === "string") &&
+    (offer.providerLanguages === undefined ||
+      typeof offer.providerLanguages === "string") &&
+    (offer.providerPreviousWork === undefined ||
+      typeof offer.providerPreviousWork === "string") &&
+    (offer.providerExpectedSalary === undefined ||
+      typeof offer.providerExpectedSalary === "string") &&
+    (offer.providerArrangements === undefined ||
+      (Array.isArray(offer.providerArrangements) &&
+        offer.providerArrangements.every(
+          (arrangement) => typeof arrangement === "string",
+        ))) &&
     typeof offer.askingPrice === "number" &&
     typeof offer.message === "string" &&
     (offer.status === "pending" ||
       offer.status === "accepted" ||
+      offer.status === "hired" ||
       offer.status === "declined") &&
     (offer.paymentStatus === "unpaid" ||
       offer.paymentStatus === "paid" ||
       offer.paymentStatus === "received") &&
+    (offer.messages === undefined ||
+      (Array.isArray(offer.messages) &&
+        offer.messages.every(
+          (message) =>
+            message &&
+            typeof message.id === "string" &&
+            typeof message.senderId === "string" &&
+            typeof message.senderName === "string" &&
+            typeof message.text === "string" &&
+            typeof message.createdAt === "string",
+        ))) &&
     typeof offer.createdAt === "string"
   );
 }
@@ -235,6 +287,15 @@ function formatDate(value: string) {
 
 function profileSkills(profile: AccountProfile) {
   return profile.skills.filter((skill) => skill.trim());
+}
+
+function getJobStatus(
+  bookedCount: number,
+  hiredCount: number,
+  openings: number,
+): JobStatus {
+  if (hiredCount >= openings) return "filled";
+  return bookedCount >= openings ? "reserved" : "open";
 }
 
 function JobCard({
@@ -309,8 +370,12 @@ function JobCard({
             <span className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
               Offer sent
             </span>
-          ) : job.status === "filled" ? (
-            <span className="text-sm font-semibold text-slate-500">Positions filled</span>
+          ) : job.status !== "open" ? (
+            <span className="text-sm font-semibold text-slate-500">
+              {job.status === "filled"
+                ? "Positions filled"
+                : "Waiting on worker confirmations"}
+            </span>
           ) : isExample ? (
             <span className="text-xs text-slate-500">
               Example only · create a real post to test offers
@@ -346,7 +411,81 @@ function JobCard({
   );
 }
 
-export default function JobsBoard() {
+function ConversationPanel({
+  offer,
+  currentUserId,
+  onSend,
+}: {
+  offer: WorkerOffer;
+  currentUserId: string;
+  onSend: (offer: WorkerOffer, text: string) => void;
+}) {
+  const messages = offer.messages ?? [];
+  if (offer.status === "declined") return null;
+
+  function submitMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const text = String(data.get("message") ?? "").trim();
+    if (!text) return;
+    onSend(offer, text);
+    form.reset();
+  }
+
+  return (
+    <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4" aria-label={`Conversation with ${offer.providerName}`}>
+      <h5 className="font-semibold text-[#142236]">Conversation</h5>
+      {messages.length > 0 ? (
+        <ol className="mt-3 space-y-2">
+          {messages.map((message) => (
+            <li
+              key={message.id}
+              className={`max-w-[95%] rounded-xl px-3 py-2 text-sm leading-5 ${
+                message.senderId === currentUserId
+                  ? "ml-auto bg-[#142236] text-white"
+                  : "bg-slate-100 text-slate-800"
+              }`}
+            >
+              <p className="text-xs font-semibold opacity-80">{message.senderName}</p>
+              <p className="mt-1 whitespace-pre-wrap">{message.text}</p>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mt-2 text-sm text-slate-500">
+          Ask questions and confirm the work details here before agreeing to start.
+        </p>
+      )}
+      <form onSubmit={submitMessage} className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <label className="sr-only" htmlFor={`message-${offer.id}`}>Write a message</label>
+        <input
+          id={`message-${offer.id}`}
+          name="message"
+          required
+          maxLength={1000}
+          placeholder="Write a message about the work or terms"
+          className="h-11 min-w-0 flex-1 rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+        />
+        <button
+          type="submit"
+          className="min-h-11 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Send message
+        </button>
+      </form>
+      <p className="mt-2 text-xs text-slate-500">
+        Demo conversation: visible only in this browser.
+      </p>
+    </section>
+  );
+}
+
+export default function JobsBoard({
+  initialProfessional,
+}: {
+  initialProfessional: InitialProfessional | null;
+}) {
   const router = useRouter();
   const { status, user, accountType, profile } = useAuth();
   const [jobs, setJobs] = useState<JobPost[]>([]);
@@ -354,8 +493,25 @@ export default function JobsBoard() {
   const [loaded, setLoaded] = useState(false);
   const [storageLoadFailed, setStorageLoadFailed] = useState(false);
   const [error, setError] = useState("");
-  const [jobFormOpen, setJobFormOpen] = useState(false);
-  const [jobForm, setJobForm] = useState(emptyJobForm);
+  const [jobFormOpen, setJobFormOpen] = useState(Boolean(initialProfessional));
+  const [jobForm, setJobForm] = useState(() =>
+    initialProfessional
+      ? {
+          ...emptyJobForm,
+          organizationName: "",
+          title: `Looking for a ${initialProfessional.skills[0]?.toLowerCase() ?? "household"} professional`,
+          category: "Household" as HiringCategory,
+          state: initialProfessional.state,
+          area: initialProfessional.area,
+          description: `Looking for support with ${initialProfessional.skills.join(", ")}. Inspired by ${initialProfessional.name}'s sample profile; describe your exact needs and invite workers to apply.`,
+          requiredSkills: initialProfessional.skills.join(", "),
+          schedule: initialProfessional.arrangement,
+          budgetMin: String(initialProfessional.salaryMin),
+          budgetMax: String(initialProfessional.salaryMax),
+          payUnit: "month" as PayUnit,
+        }
+      : emptyJobForm,
+  );
   const [activeOfferJobId, setActiveOfferJobId] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
   const [offerMessage, setOfferMessage] = useState("");
@@ -431,8 +587,8 @@ export default function JobsBoard() {
     setOffers(nextOffers);
   }
 
-  function openSignup(role: "client" | "provider") {
-    router.push(`/signup?role=${role}&next=%2Fjobs`);
+  function openSignup(role: "client" | "provider", returnTo = "/jobs") {
+    router.push(`/signup?role=${role}&next=${encodeURIComponent(returnTo)}`);
   }
 
   function createJob(event: FormEvent<HTMLFormElement>) {
@@ -540,6 +696,11 @@ export default function JobsBoard() {
       providerSkills: skills,
       providerExperience: profile.experienceYears,
       providerAvailability: profile.availability,
+      providerQualifications: profile.qualifications,
+      providerLanguages: profile.languages,
+      providerPreviousWork: profile.previousWork,
+      providerExpectedSalary: profile.expectedSalary,
+      providerArrangements: profile.arrangements,
       askingPrice,
       message: offerMessage.trim(),
       status: "pending",
@@ -573,10 +734,12 @@ export default function JobsBoard() {
     const job = jobs.find((item) => item.id === offer.jobId);
     if (!job) return;
     if (decision === "accepted") {
-      const alreadyAccepted = offers.filter(
-        (item) => item.jobId === job.id && item.status === "accepted",
+      const alreadyBooked = offers.filter(
+        (item) =>
+          item.jobId === job.id &&
+          (item.status === "accepted" || item.status === "hired"),
       ).length;
-      if (alreadyAccepted >= job.openings) {
+      if (alreadyBooked >= job.openings) {
         setError("All positions on this post have already been filled.");
         return;
       }
@@ -587,21 +750,31 @@ export default function JobsBoard() {
         ? { ...item, status: decision, paymentStatus: "unpaid" as PaymentStatus }
         : item,
     );
-    const acceptedCount = nextOffers.filter(
-      (item) => item.jobId === job.id && item.status === "accepted",
+    const bookedCount = nextOffers.filter(
+      (item) =>
+        item.jobId === job.id &&
+        (item.status === "accepted" || item.status === "hired"),
     ).length;
-    if (acceptedCount >= job.openings) {
+    if (bookedCount >= job.openings) {
       nextOffers = nextOffers.map((item) =>
         item.jobId === job.id && item.status === "pending"
           ? { ...item, status: "declined" }
           : item,
       );
     }
-    const finalAcceptedCount = nextOffers.filter(
-      (item) => item.jobId === job.id && item.status === "accepted",
+    const finalBookedCount = nextOffers.filter(
+      (item) =>
+        item.jobId === job.id &&
+        (item.status === "accepted" || item.status === "hired"),
     ).length;
-    const nextJobStatus: JobStatus =
-      finalAcceptedCount >= job.openings ? "filled" : "open";
+    const hiredCount = nextOffers.filter(
+      (item) => item.jobId === job.id && item.status === "hired",
+    ).length;
+    const nextJobStatus = getJobStatus(
+      finalBookedCount,
+      hiredCount,
+      job.openings,
+    );
     const nextJobs = jobs.map((item) =>
       item.id === job.id
         ? { ...item, status: nextJobStatus }
@@ -620,6 +793,89 @@ export default function JobsBoard() {
     }
   }
 
+  function confirmHiringOffer(offer: WorkerOffer, decision: "hired" | "declined") {
+    if (!loaded || storageLoadFailed) {
+      setError("Marketplace data has not loaded. Refresh the page before trying again.");
+      return;
+    }
+    if (!isProvider || !user || offer.providerId !== user.id || offer.status !== "accepted") {
+      setError("Only the worker who received this offer can accept or decline it.");
+      return;
+    }
+
+    const nextOffers = offers.map((item) =>
+      item.id === offer.id ? { ...item, status: decision } : item,
+    );
+    const job = jobs.find((item) => item.id === offer.jobId);
+    const bookedCount = nextOffers.filter(
+      (item) =>
+        item.jobId === offer.jobId &&
+        (item.status === "accepted" || item.status === "hired"),
+    ).length;
+    const hiredCount = nextOffers.filter(
+      (item) => item.jobId === offer.jobId && item.status === "hired",
+    ).length;
+    const nextJobs = job
+      ? jobs.map((item) =>
+          item.id === job.id
+            ? {
+                ...item,
+                status: getJobStatus(bookedCount, hiredCount, item.openings),
+              }
+            : item,
+        )
+      : jobs;
+
+    try {
+      persistOffers(nextOffers);
+      if (job) persistJobs(nextJobs);
+      setError("");
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? `Could not update the work agreement: ${saveError.message}`
+          : "Could not update the work agreement.",
+      );
+    }
+  }
+
+  function sendOfferMessage(offer: WorkerOffer, text: string) {
+    if (!loaded || storageLoadFailed || !user || !profile) {
+      setError("Sign in and wait for marketplace data to load before messaging.");
+      return;
+    }
+    const isHirer = ownJobIds.has(offer.jobId);
+    const isWorker = offer.providerId === user.id;
+    if ((!isHirer && !isWorker) || offer.status === "declined") {
+      setError("Only the hirer and worker on this offer can send messages.");
+      return;
+    }
+
+    const message: ConversationMessage = {
+      id: crypto.randomUUID(),
+      senderId: user.id,
+      senderName: profile.displayName || user.email,
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      persistOffers(
+        offers.map((item) =>
+          item.id === offer.id
+            ? { ...item, messages: [...(item.messages ?? []), message] }
+            : item,
+        ),
+      );
+      setError("");
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? `Could not send your message: ${saveError.message}`
+          : "Could not send your message.",
+      );
+    }
+  }
+
   function updatePayment(offer: WorkerOffer, nextStatus: PaymentStatus) {
     if (!loaded || storageLoadFailed) {
       setError("Marketplace data has not loaded. Refresh the page before trying again.");
@@ -628,7 +884,7 @@ export default function JobsBoard() {
     const isHirer = Boolean(user && ownJobIds.has(offer.jobId));
     const isWorker = Boolean(user && offer.providerId === user.id);
     if (
-      offer.status !== "accepted" ||
+      offer.status !== "hired" ||
       (nextStatus === "paid" && !isHirer) ||
       (nextStatus === "received" && (!isWorker || offer.paymentStatus !== "paid"))
     ) {
@@ -659,6 +915,13 @@ export default function JobsBoard() {
     if (statusValue === "received") return "Worker confirmed receipt";
     if (statusValue === "paid") return "Hirer recorded payment · awaiting confirmation";
     return "Payment not yet recorded";
+  }
+
+  function offerStatusLabel(statusValue: OfferStatus) {
+    if (statusValue === "accepted") return "Work offer sent · awaiting worker";
+    if (statusValue === "hired") return "Hired · work agreed";
+    if (statusValue === "declined") return "Declined";
+    return "Application received";
   }
 
   const fieldClass =
@@ -695,7 +958,11 @@ export default function JobsBoard() {
                 onClick={() => setJobFormOpen((current) => !current)}
                 className="min-h-12 rounded-full bg-amber-400 px-5 py-3 text-sm font-bold text-[#142236] hover:bg-amber-300"
               >
-                {jobFormOpen ? "Close job form" : "Post a job"}
+                {jobFormOpen
+                  ? "Close job form"
+                  : initialProfessional
+                    ? "Create a related job post"
+                    : "Post a job"}
               </button>
             ) : isProvider ? (
               <Link
@@ -707,10 +974,17 @@ export default function JobsBoard() {
             ) : (
               <button
                 type="button"
-                onClick={() => openSignup("client")}
+                onClick={() =>
+                  openSignup(
+                    "client",
+                    initialProfessional
+                      ? `/jobs?professional=${initialProfessional.id}`
+                      : "/jobs",
+                  )
+                }
                 className="min-h-12 rounded-full bg-amber-400 px-5 py-3 text-sm font-bold text-[#142236] hover:bg-amber-300"
               >
-                Sign up to hire
+                {initialProfessional ? "Create a related job post" : "Sign up to hire"}
               </button>
             )}
           </div>
@@ -740,6 +1014,13 @@ export default function JobsBoard() {
                 Schools, businesses, event planners, households, and teams can post.
                 Workers will see your organization, work details, and budget.
               </p>
+              {initialProfessional && (
+                <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm leading-5 text-amber-950">
+                  This draft is based on {initialProfessional.name}&apos;s sample profile.
+                  It won&apos;t contact that fictional sample person; publishing lets real
+                  workers apply so you can message and hire a candidate.
+                </p>
+              )}
             </div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-semibold text-slate-800">
@@ -902,6 +1183,10 @@ export default function JobsBoard() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-amber-800">Hirer workspace</p>
                 <h2 id="my-posts-heading" className="mt-1 text-2xl font-bold text-[#142236]">My job posts and offers</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Message applicants, send a work offer at the agreed price, then wait for
+                  the worker to confirm before work starts.
+                </p>
               </div>
               <span className="text-sm text-slate-500">{ownJobs.length} post{ownJobs.length === 1 ? "" : "s"}</span>
             </div>
@@ -916,7 +1201,11 @@ export default function JobsBoard() {
                         <p className="mt-1 text-sm text-slate-600">{job.organizationName} · {job.area}, {job.state} · {job.openings} needed</p>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${job.status === "filled" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900"}`}>
-                        {job.status === "filled" ? "Positions filled" : "Open"}
+                        {job.status === "filled"
+                          ? "Positions filled"
+                          : job.status === "reserved"
+                            ? "Work offers awaiting confirmation"
+                            : "Open"}
                       </span>
                     </div>
                     <div className="mt-5 border-t border-slate-100 pt-4">
@@ -931,7 +1220,7 @@ export default function JobsBoard() {
                                 <div className="min-w-0">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <h5 className="font-bold text-[#142236]">{offer.providerName}</h5>
-                                    <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{offer.status}</span>
+                                    <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{offerStatusLabel(offer.status)}</span>
                                   </div>
                                   <p className="mt-1 text-sm text-slate-600">
                                     {[offer.providerLocation, offer.providerExperience && `${offer.providerExperience} years’ experience`, offer.providerAvailability].filter(Boolean).join(" · ") || "Location and availability not added"}
@@ -940,21 +1229,68 @@ export default function JobsBoard() {
                                   <div className="mt-2 flex flex-wrap gap-2">
                                     {offer.providerSkills.map((skill) => <span key={skill} className="rounded-full bg-white px-2.5 py-1 text-xs text-slate-600">{skill}</span>)}
                                   </div>
+                                  {(offer.providerQualifications ||
+                                    offer.providerLanguages ||
+                                    offer.providerPreviousWork ||
+                                    offer.providerArrangements?.length) && (
+                                    <dl className="mt-4 grid gap-3 border-t border-slate-200 pt-3 text-sm sm:grid-cols-2">
+                                      {offer.providerQualifications && (
+                                        <div>
+                                          <dt className="font-semibold text-slate-700">Qualifications</dt>
+                                          <dd className="mt-1 whitespace-pre-wrap text-slate-600">{offer.providerQualifications}</dd>
+                                        </div>
+                                      )}
+                                      {offer.providerLanguages && (
+                                        <div>
+                                          <dt className="font-semibold text-slate-700">Languages</dt>
+                                          <dd className="mt-1 text-slate-600">{offer.providerLanguages}</dd>
+                                        </div>
+                                      )}
+                                      {offer.providerArrangements?.length ? (
+                                        <div>
+                                          <dt className="font-semibold text-slate-700">Work arrangements</dt>
+                                          <dd className="mt-1 text-slate-600">{offer.providerArrangements.join(" · ")}</dd>
+                                        </div>
+                                      ) : null}
+                                      {offer.providerExpectedSalary && (
+                                        <div>
+                                          <dt className="font-semibold text-slate-700">Worker&apos;s profile price range</dt>
+                                          <dd className="mt-1 text-slate-600">{offer.providerExpectedSalary}</dd>
+                                        </div>
+                                      )}
+                                      {offer.providerPreviousWork && (
+                                        <div className="sm:col-span-2">
+                                          <dt className="font-semibold text-slate-700">Previous work</dt>
+                                          <dd className="mt-1 whitespace-pre-wrap text-slate-600">{offer.providerPreviousWork}</dd>
+                                        </div>
+                                      )}
+                                    </dl>
+                                  )}
                                   {offer.message && <p className="mt-3 text-sm text-slate-700">Message: {offer.message}</p>}
-                                  {offer.status === "accepted" && (
+                                  {offer.status === "hired" && (
                                     <p className="mt-3 text-xs font-medium text-amber-900">{paymentLabel(offer.paymentStatus)}</p>
                                   )}
+                                  <ConversationPanel
+                                    offer={offer}
+                                    currentUserId={user?.id ?? ""}
+                                    onSend={sendOfferMessage}
+                                  />
                                 </div>
                                 <div className="shrink-0 sm:text-right">
                                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Worker asks</p>
                                   <p className="mt-1 text-lg font-bold text-emerald-800">{formatPrice(offer.askingPrice, job.payUnit)}</p>
                                   {offer.status === "pending" && job.status === "open" && (
                                     <div className="mt-3 flex gap-2 sm:justify-end">
-                                      <button type="button" onClick={() => respondToOffer(offer, "accepted")} className="min-h-10 rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800">Accept offer</button>
+                                      <button type="button" onClick={() => respondToOffer(offer, "accepted")} className="min-h-10 rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800">Send work offer</button>
                                       <button type="button" onClick={() => respondToOffer(offer, "declined")} className="min-h-10 rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-white">Decline</button>
                                     </div>
                                   )}
-                                  {offer.status === "accepted" && offer.paymentStatus === "unpaid" && (
+                                  {offer.status === "accepted" && (
+                                    <p className="mt-3 max-w-48 text-xs leading-5 text-amber-900">
+                                      Waiting for {offer.providerName} to confirm the terms and start work.
+                                    </p>
+                                  )}
+                                  {offer.status === "hired" && offer.paymentStatus === "unpaid" && (
                                     <button type="button" onClick={() => updatePayment(offer, "paid")} className="mt-3 min-h-10 rounded-full bg-[#142236] px-4 py-2 text-xs font-semibold text-white hover:bg-[#20334c]">Record payment sent</button>
                                   )}
                                 </div>
@@ -977,6 +1313,10 @@ export default function JobsBoard() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-amber-800">Worker workspace</p>
                 <h2 id="my-offers-heading" className="mt-1 text-2xl font-bold text-[#142236]">My price offers</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Talk through the details. When a hirer sends a work offer, accept it only
+                  if you agree with the price and schedule.
+                </p>
               </div>
               <span className="text-sm text-slate-500">{ownOffers.length} offer{ownOffers.length === 1 ? "" : "s"}</span>
             </div>
@@ -991,12 +1331,27 @@ export default function JobsBoard() {
                     <li key={offer.id} className="flex flex-col gap-3 rounded-2xl bg-[#f7f8f6] p-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="font-semibold text-[#142236]">{job.title} · {job.organizationName}</p>
-                        <p className="mt-1 text-sm text-slate-600">Your price: {formatPrice(offer.askingPrice, job.payUnit)} · Offer {offer.status}</p>
-                        {offer.status === "accepted" && <p className="mt-1 text-xs font-medium text-amber-900">{paymentLabel(offer.paymentStatus)}</p>}
+                        <p className="mt-1 text-sm text-slate-600">Your price: {formatPrice(offer.askingPrice, job.payUnit)} · {offerStatusLabel(offer.status)}</p>
+                        {offer.status === "hired" && <p className="mt-1 text-xs font-medium text-amber-900">{paymentLabel(offer.paymentStatus)}</p>}
                       </div>
-                      {offer.status === "accepted" && offer.paymentStatus === "paid" && (
+                      <div className="sm:shrink-0 sm:text-right">
+                      {offer.status === "accepted" && (
+                        <div className="flex flex-wrap gap-2">
+                          <button type="button" onClick={() => confirmHiringOffer(offer, "hired")} className="min-h-10 rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800">Accept and start work</button>
+                          <button type="button" onClick={() => confirmHiringOffer(offer, "declined")} className="min-h-10 rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-white">Decline offer</button>
+                        </div>
+                      )}
+                      {offer.status === "hired" && offer.paymentStatus === "paid" && (
                         <button type="button" onClick={() => updatePayment(offer, "received")} className="min-h-10 rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800">Confirm payment received</button>
                       )}
+                      </div>
+                      <div className="w-full">
+                        <ConversationPanel
+                          offer={offer}
+                          currentUserId={user?.id ?? ""}
+                          onSend={sendOfferMessage}
+                        />
+                      </div>
                     </li>
                   );
                 })}

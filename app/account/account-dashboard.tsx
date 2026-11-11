@@ -180,6 +180,12 @@ function MatchCard({
       >
         View full profile
       </Link>
+      <Link
+        href={`/jobs?professional=${professional.id}`}
+        className="ml-4 inline-flex min-h-10 items-center text-sm font-semibold text-emerald-800 underline underline-offset-4"
+      >
+        Post a related job
+      </Link>
     </li>
   );
 }
@@ -549,6 +555,18 @@ export default function AccountDashboard() {
                         className="text-sm font-semibold text-amber-800 underline underline-offset-4"
                       >
                         View profile
+                      </Link>
+                      <Link
+                        href={`/jobs?professional=${profile.id}`}
+                        className="text-sm font-semibold text-emerald-800 underline underline-offset-4"
+                      >
+                        Post a related job
+                      </Link>
+                      <Link
+                        href={`/jobs?professional=${profile.id}`}
+                        className="text-sm font-semibold text-emerald-800 underline underline-offset-4"
+                      >
+                        Post a related job
                       </Link>
                       <button
                         type="button"
