@@ -7,14 +7,15 @@ import { useAuth } from "./auth/auth-context";
 const navigationLinks = [
   { href: "/", label: "Home", detail: "Back to the welcome page" },
   { href: "/maids", label: "Find household help", detail: "Browse local profiles" },
+  { href: "/jobs", label: "Jobs and work", detail: "Browse opportunities and price offers" },
   { href: "/#categories", label: "Services", detail: "Explore types of support" },
   { href: "/#how-it-works", label: "How it works", detail: "See how StaffConnect works" },
   { href: "/about", label: "About us", detail: "Learn what StaffConnect is building" },
   { href: "/contact", label: "Contact us", detail: "Find the right way to get started" },
   {
-    href: "/signup?role=provider&next=%2Faccount",
-    label: "For professionals",
-    detail: "Create a Provider account",
+    href: "/jobs",
+    label: "Find work",
+    detail: "Browse opportunities and send a price offer",
   },
 ];
 
@@ -97,6 +98,9 @@ export default function SiteNavigation() {
           </button>
 
           <nav aria-label="Main navigation" className="hidden items-center gap-6 lg:flex">
+            <Link href="/jobs" className="text-sm font-medium text-slate-200 transition hover:text-white">
+              Jobs and work
+            </Link>
             <Link href="/#how-it-works" className="text-sm font-medium text-slate-200 transition hover:text-white">
               How it works
             </Link>
@@ -105,13 +109,11 @@ export default function SiteNavigation() {
             </Link>
             <Link
               href={
-                status === "signed-in" && accountType === "provider"
-                  ? "/onboarding/provider"
-                  : "/signup?role=provider&next=%2Faccount"
+                "/jobs"
               }
               className="text-sm font-medium text-slate-200 transition hover:text-white"
             >
-              For professionals
+              Find work
             </Link>
           </nav>
 

@@ -1,6 +1,6 @@
 # StaffConnect
 
-StaffConnect is a prototype for connecting households with household professionals. The initial launch locations are Lagos and Oyo, with state and area options maintained in `app/locations.ts` so other locations can be added later.
+StaffConnect is a prototype marketplace for connecting hirers with workers. Households, schools, event planners, and local businesses can post opportunities; workers can share a profile and respond with an asking price. The initial launch locations are Lagos and Oyo, with state and area options maintained in `app/locations.ts` so other locations can be added later.
 
 ## Run locally
 
@@ -33,10 +33,12 @@ Provider onboarding previews are temporary. The `/account` profile editor saves 
 - Learn about the prototype at `/about` and find next steps for households and professionals at `/contact`. Contact options are not connected to a live support inbox yet.
 - Sort directory results by location, experience, gender, availability, work arrangement, or salary, and review the active filters beside the result count.
 - Open a profile at `/maids/[id]` to review experience, qualifications, languages, interests, and work preferences. Profile details are public; sign-in is required to save a profile.
-- Create an account as a Client or Provider at `/signup`, or sign in at `/signin`. Account type is displayed in the navigation and `/account`.
+- Browse opportunities at `/jobs`. Hirers can create job posts with location, schedule, number of workers, skills, and a budget range; workers can respond with a profile and price offer. Hirers can review offers, accept or decline, and record a manual payment status that workers can confirm.
+- Job posts and offers are a browser-local prototype stored in `localStorage`; they are not shared across devices or users. Payment status is a record only: StaffConnect does not collect, transfer, or hold money.
+- Create an account as a hirer (Client) or worker (Provider) at `/signup`, or sign in at `/signin`. The account type controls whether the user can post jobs or submit price offers.
 - Provider onboarding previews support one profile photo and up to two gallery images, but drafts are not published or persisted.
 
-All directory profiles are fictional sample data. Qualifications are illustrative and unverified. Provider profile previews, selected images, and onboarding form data exist only in browser memory; this prototype does not publish listings or upload or persist provider profile data. Image selection accepts JPEG, PNG, or WebP up to 5 MB per image. Do not enter real personal or sensitive information.
+All directory profiles and example opportunities are fictional sample data. Qualifications are illustrative and unverified. Worker profiles, saved household details, job posts, and offers are not published or synced online. Job posts and offers remain in this browser; other profile drafts may exist only in temporary memory or browser storage. Image selection accepts JPEG, PNG, or WebP up to 5 MB per image. Do not enter real personal or sensitive information.
 
 ## Checks
 

@@ -323,11 +323,19 @@ export default function AccountDashboard() {
             </div>
             <div className="flex flex-wrap gap-3 sm:flex-col">
               <Link
-                href={isProvider ? "/onboarding/provider" : "/maids"}
+                href="/jobs"
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#142236] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#20334c]"
               >
-                {isProvider ? "Preview provider listings" : "Find household help"}
+                {isProvider ? "Browse jobs and offers" : "Manage my job posts"}
               </Link>
+              {!isProvider && (
+                <Link
+                  href="/maids"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Find household help
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => void handleSignOut()}

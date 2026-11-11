@@ -81,7 +81,24 @@ async function readProfileImage(file: File): Promise<ProfileImage> {
 }
 
 const householdNeeds = ["Cleaning", "Laundry", "Cooking", "Childcare"];
-const providerSkills = ["Cleaning", "Laundry", "Cooking", "Childcare"];
+const providerSkills = [
+  "Cleaning",
+  "Laundry",
+  "Cooking",
+  "Childcare",
+  "Teaching",
+  "Tutoring",
+  "Mathematics",
+  "Event planning",
+  "Event service",
+  "Customer service",
+  "Dry cleaning",
+  "Garment care",
+  "Tailoring",
+  "Sales",
+  "Driving",
+  "Maintenance",
+];
 const workArrangements = ["Live-in", "Daily", "Weekends"];
 
 const documentGuidance = {

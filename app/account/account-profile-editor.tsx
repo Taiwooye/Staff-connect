@@ -10,6 +10,21 @@ import {
 import { getAreasForState, launchStates } from "../locations";
 
 const householdSkills = ["Cleaning", "Laundry", "Cooking", "Childcare"];
+const workerSkills = [
+  ...householdSkills,
+  "Teaching",
+  "Tutoring",
+  "Mathematics",
+  "Event planning",
+  "Event service",
+  "Customer service",
+  "Dry cleaning",
+  "Garment care",
+  "Tailoring",
+  "Sales",
+  "Driving",
+  "Maintenance",
+];
 const workArrangements = ["Live-in", "Daily", "Weekends"];
 const maxPhotoSize = 5 * 1024 * 1024;
 
@@ -289,7 +304,7 @@ export default function AccountProfileEditor({
             <div>
               <h2 className="text-xl font-bold text-[#142236]">Your work profile</h2>
               <p className="mt-1 text-sm text-slate-600">
-                Help households understand your experience and what you offer.
+                Help hirers understand your experience, skills, and the work you offer.
               </p>
             </div>
             <label className="mt-5 block text-sm font-semibold text-slate-800">
@@ -370,10 +385,10 @@ export default function AccountProfileEditor({
 
             <fieldset className="mt-5">
               <legend className="text-sm font-semibold text-slate-800">
-                Services you offer
+                Skills and services you offer
               </legend>
               <div className="mt-3 flex flex-wrap gap-2">
-                {householdSkills.map((skill) => (
+                {workerSkills.map((skill) => (
                   <label
                     key={skill}
                     className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-sm transition ${

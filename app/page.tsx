@@ -42,7 +42,7 @@ export default function HomePage() {
                 More ease at home starts with the <span className="text-amber-600">right help.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-                Find household professionals who fit your needs, routine, and location — all in one welcoming place.
+                Connect with household professionals, schools, and local teams to find the people and work that fit.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -56,6 +56,12 @@ export default function HomePage() {
                   className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white/80 px-6 py-3.5 text-sm font-bold text-[#172638] transition hover:border-amber-400 hover:bg-white"
                 >
                   Create a staff profile
+                </Link>
+                <Link
+                  href="/jobs"
+                  className="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-6 py-3.5 text-sm font-bold text-amber-950 transition hover:bg-amber-100"
+                >
+                  Explore jobs and work
                 </Link>
               </div>
               <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600">

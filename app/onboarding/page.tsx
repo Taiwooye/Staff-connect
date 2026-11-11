@@ -3,25 +3,25 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Get started",
-  description: "Choose whether you are joining StaffConnect as a Client or Provider.",
+  description: "Choose whether you are joining StaffConnect to hire or find work.",
 };
 
 const roles = [
   {
     href: "/signup?role=client&next=%2Faccount",
-    eyebrow: "CLIENT ACCOUNT · I’M HIRING",
-    title: "I need household help",
+    eyebrow: "HIRER ACCOUNT · I’M HIRING",
+    title: "I’m hiring",
     description:
-      "Create a Client account to explore household professionals and save profiles you want to revisit.",
-    action: "Create a Client account",
+      "Create a hirer account for your household, school, business, event, or team. Post opportunities with your budget and review worker offers.",
+    action: "Create a hirer account",
   },
   {
     href: "/signup?role=provider&next=%2Faccount",
-    eyebrow: "PROVIDER ACCOUNT · I’M LOOKING FOR WORK",
-    title: "I’m a household professional",
+    eyebrow: "WORKER ACCOUNT · I’M LOOKING FOR WORK",
+    title: "I’m looking for work",
     description:
-      "Create a Provider account first. You can then open a temporary work-profile preview from your account.",
-    action: "Create a Provider account",
+      "Create your work profile, browse job posts, and respond with the price you’re asking for.",
+    action: "Create a worker account",
   },
 ];
 
@@ -40,15 +40,15 @@ export default function OnboardingPage() {
             First, choose your account type.
           </h1>
           <p className="mt-4 leading-relaxed text-slate-600">
-            Are you a client hiring household help, or a provider looking for work? Choose
-            the matching account type to continue.
+            Are you here to hire people or to find work? Choose the matching account type.
           </p>
         </div>
 
         <aside className="mt-7 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
-          <strong>Your account type stays with your account.</strong> After signing up,
-          you’ll see whether you joined as a Client or Provider on your account page.
-          Provider work-profile previews are not yet published or permanently saved.
+          <strong>Your account type guides your StaffConnect experience.</strong> Hirers
+          can post opportunities and review worker offers. Workers can create a profile,
+          browse jobs, and send their asking price. Prototype posts and offers stay in
+          this browser and are not yet shared with other devices.
         </aside>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">

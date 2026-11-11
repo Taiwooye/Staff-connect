@@ -10,9 +10,9 @@ const accountChoices: {
 }[] = [
   {
     type: "client",
-    title: "I need help at home",
+    title: "I’m hiring people",
     description:
-      "Find household professionals who fit your needs, location, and routine.",
+      "Hire for your household, school, business, event, or team. Post work with a clear budget.",
     icon: "⌂",
     action: "I’m hiring",
   },
@@ -20,7 +20,7 @@ const accountChoices: {
     type: "provider",
     title: "I’m looking for work",
     description:
-      "Join as a household professional and share the skills you bring to a home.",
+      "Create a work profile, browse opportunities, and send hirers your asking price.",
     icon: "✳",
     action: "I’m a professional",
   },
