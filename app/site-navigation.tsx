@@ -12,11 +12,6 @@ const navigationLinks = [
   { href: "/#how-it-works", label: "How it works", detail: "See how StaffConnect works" },
   { href: "/about", label: "About us", detail: "Learn what StaffConnect is building" },
   { href: "/contact", label: "Contact us", detail: "Find the right way to get started" },
-  {
-    href: "/jobs",
-    label: "Find work",
-    detail: "Browse opportunities and send a price offer",
-  },
 ];
 
 export default function SiteNavigation() {
