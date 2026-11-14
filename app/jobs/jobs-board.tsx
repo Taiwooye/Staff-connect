@@ -80,6 +80,13 @@ const categories: HiringCategory[] = [
   "Business",
   "Other",
 ];
+const categoryDetails: Record<HiringCategory, { icon: string; description: string }> = {
+  Household: { icon: "⌂", description: "Home and family support" },
+  Education: { icon: "▤", description: "Teaching and learning" },
+  Events: { icon: "✦", description: "Event-day and hospitality work" },
+  Business: { icon: "▣", description: "Local business roles" },
+  Other: { icon: "＋", description: "More kinds of work" },
+};
 const naira = new Intl.NumberFormat("en-NG", {
   style: "currency",
   currency: "NGN",
@@ -149,6 +156,279 @@ const exampleJobs: JobPost[] = [
     payUnit: "month",
     status: "open",
     createdAt: "2026-11-08T11:00:00.000Z",
+  },
+  {
+    id: "example-live-in-housekeeper",
+    hirerId: "example:household",
+    hirerName: "A. Bello",
+    organizationName: "Bello Household",
+    hirerAbout: "A sample household seeking dependable help with daily home routines.",
+    title: "Live-in housekeeper",
+    category: "Household",
+    state: "Lagos",
+    area: "Ikeja",
+    description:
+      "Help with cleaning, laundry, and keeping shared spaces organized. Duties and rest times will be discussed clearly before an agreement.",
+    requiredSkills: ["Housekeeping", "Laundry", "Organization"],
+    schedule: "Live-in · six days per week",
+    openings: 1,
+    budgetMin: 120000,
+    budgetMax: 160000,
+    payUnit: "month",
+    status: "open",
+    createdAt: "2026-11-12T10:00:00.000Z",
+  },
+  {
+    id: "example-weekend-childcare",
+    hirerId: "example:family",
+    hirerName: "N. Okoro",
+    organizationName: "Okoro Household",
+    hirerAbout: "A sample family looking for weekend childcare support.",
+    title: "Weekend childcare assistant",
+    category: "Household",
+    state: "Lagos",
+    area: "Lekki",
+    description:
+      "Support two school-age children with play, meals, and their weekend routine. Relevant experience and references are welcome.",
+    requiredSkills: ["Childcare", "First aid", "Meal preparation"],
+    schedule: "Saturday and Sunday · daytime",
+    openings: 1,
+    budgetMin: 18000,
+    budgetMax: 25000,
+    payUnit: "day",
+    status: "open",
+    createdAt: "2026-11-11T08:30:00.000Z",
+  },
+  {
+    id: "example-home-cook",
+    hirerId: "example:home-cook",
+    hirerName: "Mr. Yusuf",
+    organizationName: "Yusuf Household",
+    hirerAbout: "A sample home seeking help preparing everyday meals.",
+    title: "Part-time home cook",
+    category: "Household",
+    state: "Oyo",
+    area: "Ibadan",
+    description:
+      "Plan and prepare lunch and dinner on weekdays. Share your cooking experience and the meals you are comfortable preparing.",
+    requiredSkills: ["Cooking", "Meal planning", "Food hygiene"],
+    schedule: "Weekdays · 10 am–3 pm",
+    openings: 1,
+    budgetMin: 70000,
+    budgetMax: 95000,
+    payUnit: "month",
+    status: "open",
+    createdAt: "2026-11-10T12:00:00.000Z",
+  },
+  {
+    id: "example-event-usher",
+    hirerId: "example:events",
+    hirerName: "Tola Events",
+    organizationName: "Tola Events",
+    hirerAbout: "A sample event-planning team coordinating a celebration in Lekki.",
+    title: "Guest ushers for a wedding",
+    category: "Events",
+    state: "Lagos",
+    area: "Lekki",
+    description:
+      "Welcome guests, help with seating, and direct attendees during a wedding reception. A friendly and professional manner is essential.",
+    requiredSkills: ["Guest service", "Communication", "Event support"],
+    schedule: "Saturday · 12 pm–9 pm",
+    openings: 6,
+    budgetMin: 22000,
+    budgetMax: 30000,
+    payUnit: "shift",
+    status: "open",
+    createdAt: "2026-11-12T09:00:00.000Z",
+  },
+  {
+    id: "example-event-setup",
+    hirerId: "example:events",
+    hirerName: "Gather & Co.",
+    organizationName: "Gather & Co. Events",
+    hirerAbout: "A sample event team preparing a venue for a private celebration.",
+    title: "Event setup assistants",
+    category: "Events",
+    state: "Lagos",
+    area: "Ikeja",
+    description:
+      "Help arrange tables, chairs, and simple decorations before guests arrive, then assist with pack-down at the end of the event.",
+    requiredSkills: ["Event setup", "Teamwork", "Attention to detail"],
+    schedule: "Friday · 8 am–6 pm",
+    openings: 5,
+    budgetMin: 20000,
+    budgetMax: 28000,
+    payUnit: "shift",
+    status: "open",
+    createdAt: "2026-11-11T11:00:00.000Z",
+  },
+  {
+    id: "example-event-catering",
+    hirerId: "example:catering",
+    hirerName: "Chika Catering",
+    organizationName: "Chika Catering",
+    hirerAbout: "A sample catering team serving a family celebration in Ibadan.",
+    title: "Catering service assistants",
+    category: "Events",
+    state: "Oyo",
+    area: "Ibadan",
+    description:
+      "Assist with food service, keep the serving area tidy, and help the team provide a welcoming experience for guests.",
+    requiredSkills: ["Food service", "Customer service", "Food hygiene"],
+    schedule: "Sunday · 11 am–7 pm",
+    openings: 3,
+    budgetMin: 18000,
+    budgetMax: 26000,
+    payUnit: "shift",
+    status: "open",
+    createdAt: "2026-11-10T07:30:00.000Z",
+  },
+  {
+    id: "example-event-cleanup",
+    hirerId: "example:events-cleanup",
+    hirerName: "Tola Events",
+    organizationName: "Tola Events",
+    hirerAbout: "A sample event-planning team looking for post-event venue support.",
+    title: "Post-event cleanup crew",
+    category: "Events",
+    state: "Lagos",
+    area: "Lekki",
+    description:
+      "Work with a small team to tidy the venue, collect reusable items, and leave the space ready for its next booking.",
+    requiredSkills: ["Cleaning", "Teamwork", "Reliability"],
+    schedule: "Saturday · 10 pm–2 am",
+    openings: 3,
+    budgetMin: 15000,
+    budgetMax: 22000,
+    payUnit: "shift",
+    status: "open",
+    createdAt: "2026-11-09T18:00:00.000Z",
+  },
+  {
+    id: "example-reading-coach",
+    hirerId: "example:school",
+    hirerName: "Mrs. Adeyemi",
+    organizationName: "Bright Future School",
+    hirerAbout: "A sample school supporting learners with small-group lessons.",
+    title: "After-school reading coach",
+    category: "Education",
+    state: "Lagos",
+    area: "Ikeja",
+    description:
+      "Help primary pupils build reading confidence in small groups. Share your teaching approach and experience with young learners.",
+    requiredSkills: ["Teaching", "Reading", "Child development"],
+    schedule: "Weekdays · 3 pm–5 pm",
+    openings: 2,
+    budgetMin: 10000,
+    budgetMax: 15000,
+    payUnit: "hour",
+    status: "open",
+    createdAt: "2026-11-12T08:00:00.000Z",
+  },
+  {
+    id: "example-stem-club",
+    hirerId: "example:learning",
+    hirerName: "Mr. Akin",
+    organizationName: "Curious Minds Club",
+    hirerAbout: "A sample after-school club introducing children to hands-on STEM activities.",
+    title: "Weekend STEM club facilitator",
+    category: "Education",
+    state: "Oyo",
+    area: "Ibadan",
+    description:
+      "Lead simple, age-appropriate science and maths activities for primary school pupils in a weekend learning club.",
+    requiredSkills: ["STEM", "Facilitation", "Lesson planning"],
+    schedule: "Saturdays · 9 am–1 pm",
+    openings: 1,
+    budgetMin: 15000,
+    budgetMax: 22000,
+    payUnit: "day",
+    status: "open",
+    createdAt: "2026-11-11T09:00:00.000Z",
+  },
+  {
+    id: "example-business-receptionist",
+    hirerId: "example:business",
+    hirerName: "Kemi A.",
+    organizationName: "Fresh Press Laundry",
+    hirerAbout: "A sample local business looking for reliable customer-facing support.",
+    title: "Customer service assistant",
+    category: "Business",
+    state: "Oyo",
+    area: "Ibadan",
+    description:
+      "Welcome customers, answer basic enquiries, and help track incoming and outgoing laundry orders.",
+    requiredSkills: ["Customer service", "Communication", "Record keeping"],
+    schedule: "Weekdays · 8 am–5 pm",
+    openings: 1,
+    budgetMin: 90000,
+    budgetMax: 120000,
+    payUnit: "month",
+    status: "open",
+    createdAt: "2026-11-12T07:00:00.000Z",
+  },
+  {
+    id: "example-business-stock",
+    hirerId: "example:retail",
+    hirerName: "Deji Stores",
+    organizationName: "Deji Home Essentials",
+    hirerAbout: "A sample neighborhood shop seeking an organized stock assistant.",
+    title: "Shop and stock assistant",
+    category: "Business",
+    state: "Lagos",
+    area: "Ikeja",
+    description:
+      "Help arrange shelves, receive stock deliveries, and keep a simple daily record of items sold.",
+    requiredSkills: ["Stock handling", "Organization", "Basic numeracy"],
+    schedule: "Six days per week · daytime",
+    openings: 2,
+    budgetMin: 85000,
+    budgetMax: 110000,
+    payUnit: "month",
+    status: "open",
+    createdAt: "2026-11-10T10:00:00.000Z",
+  },
+  {
+    id: "example-other-office-helper",
+    hirerId: "example:community",
+    hirerName: "A. Bello",
+    organizationName: "Neighbourhood Learning Hub",
+    hirerAbout: "A sample community space looking for practical day-to-day support.",
+    title: "Community centre helper",
+    category: "Other",
+    state: "Lagos",
+    area: "Ikeja",
+    description:
+      "Help prepare rooms for activities, welcome visitors, and assist with simple setup and tidying tasks.",
+    requiredSkills: ["Organization", "Visitor support", "Teamwork"],
+    schedule: "Weekdays · 9 am–3 pm",
+    openings: 1,
+    budgetMin: 8000,
+    budgetMax: 12000,
+    payUnit: "day",
+    status: "open",
+    createdAt: "2026-11-11T10:30:00.000Z",
+  },
+  {
+    id: "example-other-gardener",
+    hirerId: "example:garden",
+    hirerName: "Mr. Yusuf",
+    organizationName: "Yusuf Residence",
+    hirerAbout: "A sample residence looking for help maintaining its outdoor space.",
+    title: "Part-time garden assistant",
+    category: "Other",
+    state: "Oyo",
+    area: "Ibadan",
+    description:
+      "Help with watering, basic pruning, and keeping a small home garden neat. Experience with common plants is useful.",
+    requiredSkills: ["Gardening", "Plant care", "Reliability"],
+    schedule: "Three mornings per week",
+    openings: 1,
+    budgetMin: 25000,
+    budgetMax: 40000,
+    payUnit: "month",
+    status: "open",
+    createdAt: "2026-11-09T09:00:00.000Z",
   },
 ];
 
@@ -542,6 +822,10 @@ export default function JobsBoard({
       (categoryFilter === "All categories" || job.category === categoryFilter)
     );
   });
+  const categoryCounts = categories.map((category) => ({
+    category,
+    count: allJobs.filter((job) => job.category === category).length,
+  }));
   const ownJobs =
     isClient && user ? jobs.filter((job) => job.hirerId === user.id) : [];
   const ownJobIds = new Set(ownJobs.map((job) => job.id));
@@ -1366,7 +1650,7 @@ export default function JobsBoard({
               <p className="text-sm font-semibold uppercase tracking-wide text-amber-800">Public job board</p>
               <h2 id="jobs-heading" className="mt-1 text-2xl font-bold text-[#142236]">Explore work opportunities</h2>
             </div>
-            <div className="grid gap-3 sm:grid-cols-[minmax(14rem,1fr)_12rem]">
+            <div className="grid gap-3 sm:grid-cols-[minmax(14rem,1fr)]">
               <label className="sr-only" htmlFor="job-search">Search opportunities</label>
               <input
                 id="job-search"
@@ -1376,13 +1660,70 @@ export default function JobsBoard({
                 placeholder="Search role, skill, or location"
                 className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
               />
-              <label className="sr-only" htmlFor="job-category">Filter by category</label>
-              <select id="job-category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100">
-                <option>All categories</option>
-                {categories.map((category) => <option key={category}>{category}</option>)}
-              </select>
             </div>
           </div>
+          <div className="mb-5">
+            <h3 className="mb-3 text-sm font-bold text-[#142236]">Browse by category</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              <button
+                type="button"
+                aria-pressed={categoryFilter === "All categories"}
+                onClick={() => setCategoryFilter("All categories")}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  categoryFilter === "All categories"
+                    ? "border-[#142236] bg-[#142236] text-white shadow-sm"
+                    : "border-slate-200 bg-white text-[#142236] hover:border-amber-300 hover:bg-amber-50/50"
+                }`}
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span className="font-bold">All jobs</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    categoryFilter === "All categories" ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"
+                  }`}>{allJobs.length}</span>
+                </span>
+                <span className={`mt-1 block text-xs ${
+                  categoryFilter === "All categories" ? "text-slate-300" : "text-slate-500"
+                }`}>Every opportunity</span>
+              </button>
+              {categoryCounts.map(({ category, count }) => {
+                const isSelected = categoryFilter === category;
+                const details = categoryDetails[category];
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => setCategoryFilter(category)}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      isSelected
+                        ? "border-[#142236] bg-[#142236] text-white shadow-sm"
+                        : "border-slate-200 bg-white text-[#142236] hover:border-amber-300 hover:bg-amber-50/50"
+                    }`}
+                  >
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2 font-bold">
+                        <span aria-hidden="true" className={isSelected ? "text-amber-300" : "text-amber-700"}>{details.icon}</span>
+                        {category}
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        isSelected ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"
+                      }`}>{count}</span>
+                    </span>
+                    <span className={`mt-1 block text-xs ${
+                      isSelected ? "text-slate-300" : "text-slate-500"
+                    }`}>{details.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {loaded && (
+            <p className="mb-4 text-sm text-slate-500" aria-live="polite">
+              Showing {filteredJobs.length} {filteredJobs.length === 1 ? "opportunity" : "opportunities"}
+              {categoryFilter !== "All categories" ? ` in ${categoryFilter}` : ""}
+              {search.trim() ? ` matching “${search.trim()}”` : ""}
+            </p>
+          )}
           {!loaded && <p className="rounded-2xl bg-white p-5 text-sm text-slate-600">Loading local job posts...</p>}
           {loaded && filteredJobs.length === 0 && (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
