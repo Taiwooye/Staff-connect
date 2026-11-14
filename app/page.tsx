@@ -25,6 +25,37 @@ const assurances = [
   { icon: "♡", title: "A better fit for both", detail: "Clear needs, schedules, and expectations" },
 ];
 
+const platformBenefits = [
+  {
+    title: "For households",
+    description:
+      "Explore verified workers, compare work arrangements, and clearly outline duties before onboarding.",
+    accent: "bg-amber-50 text-amber-900",
+    icon: "⌂",
+  },
+  {
+    title: "For professionals",
+    description:
+      "Build a profile that highlights skills, availability, and preferred work arrangements for better matches.",
+    accent: "bg-emerald-50 text-emerald-900",
+    icon: "✦",
+  },
+  {
+    title: "Built on trust",
+    description:
+      "A safer process starts with clear expectations, protection against surprises, and transparency from both sides.",
+    accent: "bg-sky-50 text-sky-900",
+    icon: "✓",
+  },
+];
+
+const tractionStats = [
+  { value: "2k+", label: "worker profiles planned", detail: "Lagos-first community growth" },
+  { value: "1.5k+", label: "households targeted", detail: "Demand building across neighborhoods" },
+  { value: "24h", label: "support response goal", detail: "Faster escalation for serious issues" },
+  { value: "4.2/5", label: "average trust goal", detail: "Strong fit, stable relationships" },
+];
+
 export default function HomePage() {
   return (
     <>
@@ -147,6 +178,38 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="bg-[#f6f7f5] px-5 py-20 sm:px-8 sm:py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto mb-10 max-w-3xl text-center">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Built for real household needs</p>
+              <h2 className="text-3xl font-bold tracking-tight text-[#172638] sm:text-4xl">A safer, clearer way to match homes and household professionals</h2>
+              <p className="mt-4 leading-7 text-slate-500">The platform is designed around the things that matter most in a home-based arrangement: trust, location, schedule, responsibilities, and fair expectations.</p>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              {platformBenefits.map((benefit) => (
+                <article key={benefit.title} className="rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-7">
+                  <span aria-hidden="true" className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl ${benefit.accent}`}>
+                    {benefit.icon}
+                  </span>
+                  <h3 className="mt-5 text-xl font-bold text-[#172638]">{benefit.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{benefit.description}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {tractionStats.map((stat) => (
+                <div key={stat.label} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+                  <p className="text-3xl font-bold tracking-tight text-[#142236]">{stat.value}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-700">{stat.label}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">{stat.detail}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
