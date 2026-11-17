@@ -29,7 +29,7 @@ const platformBenefits = [
   {
     title: "For households",
     description:
-      "Explore verified workers, compare work arrangements, and clearly outline duties before onboarding.",
+      "Explore worker profiles, compare work arrangements, and clearly outline duties before onboarding.",
     accent: "bg-amber-50 text-amber-900",
     icon: "⌂",
   },

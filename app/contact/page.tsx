@@ -102,8 +102,17 @@ export default function ContactPage() {
               <p className="mt-2 max-w-3xl text-sm leading-6 text-amber-900">
                 StaffConnect is currently a prototype and does not have a
                 connected support inbox or phone line yet. We haven’t listed
-                placeholder contact details, and messages cannot be sent through
-                this site. Please use the links above to explore the prototype.
+                placeholder contact details. Marketplace messages and reports
+                are local-only demos, are not monitored, and will not reach a
+                support team. Do not use them for urgent help or share sensitive
+                information.{" "}
+                <Link
+                  href="/trust"
+                  className="font-semibold underline underline-offset-4"
+                >
+                  Review trust and safety limits
+                </Link>
+                . Please use the links above to explore the prototype.
               </p>
             </div>
           </div>

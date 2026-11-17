@@ -755,7 +755,11 @@ function ConversationPanel({
         </button>
       </form>
       <p className="mt-2 text-xs text-slate-500">
-        Demo conversation: visible only in this browser.
+        Demo conversation: visible only in this browser and not monitored. Keep identity, bank, and
+        other sensitive details out of messages.{" "}
+        <Link href="/trust" className="font-semibold text-amber-900 underline underline-offset-4">
+          Trust and safety
+        </Link>
       </p>
     </section>
   );
@@ -864,11 +868,13 @@ export default function JobsBoard({
   function persistJobs(nextJobs: JobPost[]) {
     window.localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(nextJobs));
     setJobs(nextJobs);
+    window.dispatchEvent(new Event("staffconnect-marketplace-change"));
   }
 
   function persistOffers(nextOffers: WorkerOffer[]) {
     window.localStorage.setItem(OFFERS_STORAGE_KEY, JSON.stringify(nextOffers));
     setOffers(nextOffers);
+    window.dispatchEvent(new Event("staffconnect-marketplace-change"));
   }
 
   function openSignup(role: "client" | "provider", returnTo = "/jobs") {
