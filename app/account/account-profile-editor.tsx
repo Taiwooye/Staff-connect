@@ -27,6 +27,7 @@ const workerSkills = [
 ];
 const workArrangements = ["Live-in", "Daily", "Weekends"];
 const maxPhotoSize = 5 * 1024 * 1024;
+const allowedPhotoTypes = ["image/jpeg", "image/png", "image/webp"];
 
 function getInitials(name: string) {
   return (
@@ -78,8 +79,8 @@ export default function AccountProfileEditor({
     if (!file) return;
     event.target.value = "";
 
-    if (!file.type.startsWith("image/")) {
-      setError("Choose an image file for your profile photo.");
+    if (!allowedPhotoTypes.includes(file.type)) {
+      setError("Choose a JPEG, PNG, or WebP image for your profile photo.");
       return;
     }
 
@@ -180,36 +181,33 @@ export default function AccountProfileEditor({
     "mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100";
   const textAreaClass =
     "mt-2 min-h-28 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100";
+  const photoChanged = draft.photoDataUrl !== profile.photoDataUrl;
 
   return (
     <form onSubmit={submitProfile} className="space-y-6">
-      <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-          <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-100 text-2xl font-bold text-amber-900 ring-4 ring-amber-50">
-            {draft.photoDataUrl ? (
-              <Image
-                src={draft.photoDataUrl}
-                alt={`${draft.displayName || "Your"} profile photo`}
-                fill
-                unoptimized
-                sizes="96px"
-                className="object-cover"
-              />
-            ) : (
-              getInitials(draft.displayName)
-            )}
-          </div>
+      <section className="relative isolate overflow-hidden rounded-[2rem] border border-slate-700 bg-[#142236] p-5 text-white shadow-xl shadow-slate-900/10 sm:p-7">
+        <div aria-hidden="true" className="absolute -right-20 -top-24 -z-10 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
+        <div aria-hidden="true" className="absolute -bottom-28 left-1/3 -z-10 h-56 w-56 rounded-full bg-sky-400/10 blur-3xl" />
+        <div className="relative grid gap-6 lg:grid-cols-[1fr_19rem] lg:items-center">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#142236]">Your profile photo</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Add a friendly photo so people know who they’re connecting with.
+            <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/25 bg-white/5 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-amber-200">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              Your profile photo
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <label className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-amber-400 hover:bg-amber-50">
-                {draft.photoDataUrl ? "Change photo" : "Choose a photo"}
+            <h2 className="mt-4 max-w-lg text-2xl font-bold tracking-tight sm:text-3xl">
+              Put a friendly face to your profile.
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
+              Choose a clear, recent photo that helps people recognize you. You can change or remove it at any time.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-amber-300 px-5 py-2.5 text-sm font-bold text-[#142236] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-amber-200 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-amber-200">
+                <span aria-hidden="true" className="text-base leading-none">↑</span>
+                {draft.photoDataUrl ? "Choose a different photo" : "Upload a photo"}
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={(event) => void handlePhotoChange(event)}
                   className="sr-only"
                   aria-label="Upload a profile photo"
@@ -219,14 +217,64 @@ export default function AccountProfileEditor({
                 <button
                   type="button"
                   onClick={() => updateField("photoDataUrl", "")}
-                  className="min-h-10 rounded-full px-3 py-2 text-sm font-semibold text-slate-600 underline underline-offset-4 hover:text-slate-900"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/25 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-rose-200/60 hover:bg-rose-400/10 hover:text-white"
                 >
                   Remove photo
                 </button>
               )}
-              <span className="text-xs text-slate-500">JPG, PNG or WebP · up to 5 MB</span>
             </div>
+            <p className="mt-3 text-xs leading-5 text-slate-400">
+              JPEG, PNG, or WebP · 5 MB maximum · automatically resized before saving
+            </p>
           </div>
+
+          <aside className="rounded-[1.5rem] border border-white/15 bg-white p-4 text-[#142236] shadow-2xl shadow-black/15 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                Profile preview
+              </p>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  photoChanged
+                    ? "bg-amber-100 text-amber-900"
+                    : draft.photoDataUrl
+                      ? "bg-emerald-100 text-emerald-900"
+                      : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {photoChanged
+                  ? "Unsaved change"
+                  : draft.photoDataUrl
+                    ? "Saved on this device"
+                    : "No photo yet"}
+              </span>
+            </div>
+            <div className="mt-5 flex items-center gap-4 rounded-2xl bg-[#f6f7f5] p-4">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-amber-100 text-xl font-bold text-amber-900 ring-4 ring-white shadow-md">
+                {draft.photoDataUrl ? (
+                  <Image
+                    src={draft.photoDataUrl}
+                    alt={`${draft.displayName || "Your"} profile photo preview`}
+                    fill
+                    unoptimized
+                    sizes="80px"
+                    className="object-cover"
+                  />
+                ) : (
+                  getInitials(draft.displayName)
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-bold">{draft.displayName || "Your name"}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  {draft.photoDataUrl ? "Your photo is ready to preview." : "Your initials appear until you add a photo."}
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-xs leading-5 text-slate-500">
+              Preview only. Changes are saved in this browser when you select “Save profile”.
+            </p>
+          </aside>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
