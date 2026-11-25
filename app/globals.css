@@ -91,3 +91,109 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ───────────── Splash screen ─────────────
+   Shown on every full page load. The CSS animation below is the timer: it only
+   starts once the loader is painted, so the loader always gets its full ~5s
+   on screen. The boot script in splash-screen.tsx listens for its start/end. */
+
+.splash-screen {
+  animation: splash-exit 450ms cubic-bezier(0.4, 0, 0.2, 1) 4.55s forwards;
+}
+
+html[data-splash="skipping"] .splash-screen {
+  animation: splash-skip-exit 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+html[data-splash="leaving"] .splash-screen,
+html[data-splash="skipping"] .splash-screen {
+  pointer-events: none;
+}
+
+html[data-splash="seen"] .splash-screen {
+  display: none;
+}
+
+/* Lock page scroll while the loader is up. */
+html[data-splash="active"],
+html[data-splash="leaving"],
+html[data-splash="skipping"] {
+  overflow: hidden;
+}
+
+/* Hold the page's entrance animations until the splash starts leaving. */
+html[data-splash="active"] .home-motion,
+html[data-splash="active"] .home-motion * {
+  animation-play-state: paused;
+}
+
+.splash-wordmark {
+  animation: splash-fade 600ms ease 200ms backwards;
+}
+
+.splash-dot {
+  animation: splash-dot 1.2s ease-in-out infinite;
+}
+
+.splash-dot:nth-child(2) { animation-delay: 150ms; }
+.splash-dot:nth-child(3) { animation-delay: 300ms; }
+
+.splash-skip {
+  animation: splash-fade 600ms ease 1.5s backwards;
+}
+
+@keyframes splash-dot {
+  0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@keyframes splash-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splash-exit {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes splash-skip-exit {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* ───────────── Home: hero photo & scroll reveal ───────────── */
+
+.home-hero-photo {
+  animation: home-hero-zoom 24s ease-out both;
+}
+
+@keyframes home-hero-zoom {
+  from { transform: scale(1.12); }
+  to { transform: scale(1); }
+}
+
+@supports (animation-timeline: view()) {
+  .home-reveal {
+    animation: home-fade-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+}
+
+.home-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-faq[open] .home-faq-icon {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-photo,
+  .home-reveal {
+    animation: none !important;
+  }
+
+  .splash-dot {
+    animation: none !important;
+  }
+}

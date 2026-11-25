@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { ProfileDraftProvider } from "./onboarding/profile-draft-context";
 import { AuthProvider } from "./auth/auth-context";
 import SiteNavigation from "./site-navigation";
+import SplashScreen, { splashBootScript } from "./splash-screen";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
@@ -14,8 +15,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${geist.variable} h-full`}>
+    // suppressHydrationWarning: the splash boot script sets data-splash on <html> before hydration.
+    <html lang="en" data-scroll-behavior="smooth" className={`${geist.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: splashBootScript }} />
+      </head>
       <body className="min-h-full flex flex-col bg-white text-slate-900 antialiased">
+        <SplashScreen />
         <AuthProvider>
           <ProfileDraftProvider>
             <SiteNavigation />
