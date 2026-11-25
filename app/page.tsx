@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import { launchLocations } from "./locations";
 import { serviceCategories } from "./maids/services";
 
 const steps = [
@@ -56,11 +58,51 @@ const tractionStats = [
   { value: "4.2/5", label: "average trust goal", detail: "Strong fit, stable relationships" },
 ];
 
+const introHighlights = [
+  "Households describe the help they need — duties, hours, and live-in or live-out.",
+  "Professionals show their skills, experience, and the work they’re looking for.",
+  "Both sides agree on expectations before anyone starts.",
+];
+
+const faqs = [
+  {
+    question: "What is StaffConnect?",
+    answer:
+      "StaffConnect is a marketplace that connects households with household professionals — nannies, cleaners, cooks, drivers and more — so both sides can find a good fit with clear expectations.",
+  },
+  {
+    question: "Does it cost anything to look around?",
+    answer:
+      "No. You can browse profiles and job posts freely. Create an account when you’re ready to save profiles, start a conversation, or post a role.",
+  },
+  {
+    question: "How are workers checked?",
+    answer:
+      "Profiles show skills and experience up front, and our Trust Center explains the verification steps, reporting tools, and safety practices we are building into the platform.",
+  },
+  {
+    question: "I’m a household professional. How do I find work?",
+    answer:
+      "Create a staff profile with your skills, availability, and preferred arrangement, then explore open jobs from households near you.",
+  },
+];
+
 export default function HomePage() {
   return (
     <>
       <main>
         <section className="home-motion relative isolate overflow-hidden bg-[#fbf8f2] px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
+          <div aria-hidden="true" className="absolute inset-0 -z-20 -scale-x-100 overflow-hidden">
+            <Image
+              src="/images/home-hero.jpg"
+              alt=""
+              fill
+              preload
+              sizes="100vw"
+              className="home-hero-photo object-cover object-[60%_center]"
+            />
+          </div>
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-[#fbf8f2]/95 via-[#fbf8f2]/90 to-[#fbf8f2]/80 lg:bg-gradient-to-r lg:from-[#fbf8f2] lg:via-[#fbf8f2]/85 lg:to-[#fbf8f2]/25" />
           <div aria-hidden="true" className="home-glow home-glow--amber absolute -right-32 -top-32 -z-10 h-[34rem] w-[34rem] rounded-full bg-amber-200/30 blur-3xl" />
           <div aria-hidden="true" className="home-glow home-glow--orange absolute -bottom-48 left-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-orange-100/70 blur-3xl" />
           <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
@@ -181,6 +223,53 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section id="welcome" className="home-motion scroll-mt-28 bg-white px-5 py-20 sm:px-8 sm:py-24">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="home-reveal relative">
+              <div aria-hidden="true" className="absolute -left-4 -top-4 h-full w-full rounded-[2.25rem] bg-amber-100" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] shadow-[0_30px_80px_-40px_rgba(20,34,54,0.55)]">
+                <Image
+                  src="/images/home-intro.jpg"
+                  alt="Two people cooking together in a bright home kitchen"
+                  fill
+                  sizes="(min-width: 1024px) 40rem, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-6 right-4 flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-xl sm:right-8">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-lg" aria-hidden="true">📍</span>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Launching in Lagos &amp; Oyo</p>
+                  <p className="text-xs text-slate-500">More states coming soon</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="home-reveal">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Welcome to StaffConnect</p>
+              <h2 className="text-3xl font-bold tracking-tight text-[#172638] sm:text-4xl">
+                Finding good help at home shouldn’t depend on who you know.
+              </h2>
+              <p className="mt-5 leading-7 text-slate-600">
+                Most families find a nanny, cleaner, or cook through word of mouth — and most household professionals find
+                work the same way. StaffConnect brings both sides into one place, so you can see who’s available, what they
+                do best, and whether the arrangement works for you.
+              </p>
+              <ul className="mt-7 space-y-3">
+                {introHighlights.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm leading-6 text-slate-700">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700" aria-hidden="true">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/about" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-amber-800 transition hover:text-amber-600">
+                Read our story <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section className="bg-[#f6f7f5] px-5 py-20 sm:px-8 sm:py-24">
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto mb-10 max-w-3xl text-center">
@@ -269,6 +358,52 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="home-motion bg-white px-5 py-20 sm:px-8 sm:py-24">
+          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+            <div className="home-reveal">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Where we’re starting</p>
+              <h2 className="text-3xl font-bold tracking-tight text-[#172638] sm:text-4xl">Close to home, from day one.</h2>
+              <p className="mt-4 leading-7 text-slate-500">
+                We’re launching neighborhood by neighborhood so every household can find help nearby — and every
+                professional can find work without a long commute.
+              </p>
+              <div className="mt-7 space-y-5">
+                {Object.entries(launchLocations).map(([state, areas]) => (
+                  <div key={state}>
+                    <p className="text-sm font-bold text-[#172638]">{state} State</p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {areas.map((area) => (
+                        <li key={area} className="rounded-full border border-slate-200 bg-[#fbf8f2] px-3 py-1.5 text-xs font-semibold text-slate-700">
+                          {area}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <Link href="/maids" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-amber-800 transition hover:text-amber-600">
+                Browse profiles near you <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+
+            <div id="faq" className="home-reveal scroll-mt-28">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Questions</p>
+              <h2 className="text-3xl font-bold tracking-tight text-[#172638] sm:text-4xl">Good to know.</h2>
+              <div className="mt-7 divide-y divide-slate-200 rounded-[1.75rem] border border-slate-200 bg-white">
+                {faqs.map((faq, index) => (
+                  <details key={faq.question} className="home-faq group px-6" open={index === 0}>
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left font-bold text-[#172638] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400">
+                      {faq.question}
+                      <span className="home-faq-icon flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-lg text-amber-700 transition-transform" aria-hidden="true">+</span>
+                    </summary>
+                    <p className="pb-5 text-sm leading-6 text-slate-600">{faq.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="bg-[#142236] px-5 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-7 sm:p-10 lg:flex-row lg:items-center lg:p-12">
             <div className="max-w-2xl">
@@ -302,6 +437,7 @@ export default function HomePage() {
             <Link href="/about" className="transition hover:text-white">About us</Link>
             <Link href="/contact" className="transition hover:text-white">Contact us</Link>
             <Link href="#how-it-works" className="transition hover:text-white">How it works</Link>
+            <Link href="#faq" className="transition hover:text-white">FAQ</Link>
           </nav>
         </div>
       </footer>
